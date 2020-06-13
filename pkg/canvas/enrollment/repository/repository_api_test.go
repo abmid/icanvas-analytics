@@ -1,0 +1,90 @@
+package repository
+
+import (
+	mock_enrollment "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/repository/mock/canvas"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"gotest.tools/assert"
+)
+
+func TestListEnrollmentByCourseID(t *testing.T) {
+	srv := serverMock()
+	defer srv.Close()
+	EnrollmentRepo := NewRepositoryAPI(http.DefaultClient, srv.URL, "my-secret-token")
+	res, err := EnrollmentRepo.ListEnrollmentByCourseID(1)
+	t.Log(res)
+	assert.NilError(t, err, "Error List Enrollment")
+	assert.Equal(t, res[0].ID, uint32(1))
+	assert.Equal(t, len(res), 1)
+	t.Fatalf("P")
+}
+
+func serverMock() *httptest.Server {
+	myGin := ginMock()
+	srv := httptest.NewServer(myGin)
+	return srv
+}
+
+func ginMock() *gin.Engine {
+	r := gin.Default()
+	r.GET("/api/v1/courses/1/enrollments", mock_enrollment.ListEnrollmentByCourseID())
+	return r
+}
+
+func TestFixErrorUnmarshalStringJSON(t *testing.T) {
+	jsonn := `[
+		{
+			"id": 1,
+			"course_id": 1,
+			"user_id": 1,
+			"role_id": 1,
+			"role": "role",
+			"type": "type",
+			"created_at": "2019-09-23T12:50:28+07:00",
+			"updated_at": "2019-09-23T12:50:28+07:00",
+			"grades": {
+				"html_url": "string",
+				"current_grade": "",
+				"current_score": 32.3,
+				"final_grade": 32.3,
+				"final_score": 33.3
+			}
+		}
+	]`
+	rr, err := fixErrorUnmarshalStringJSON([]byte(jsonn))
+	t.Log(rr)
+	assert.NilError(t, err, "Error Safe Get Int")
+	assert.Equal(t, rr[0].ID, uint32(1))
+	// t.Fatalf("P")
+}
+
+func TestSafeGetUint(t *testing.T) {
+	var TestExceptation uint32
+	TestExceptation = 10
+	assert.Equal(t, safeGetUint(int32(10)), TestExceptation)
+	assert.Equal(t, safeGetUint(int64(10)), TestExceptation)
+	assert.Equal(t, safeGetUint(int16(10)), TestExceptation)
+}
+
+func TestSafeGetFloat32(t *testing.T) {
+	var TestExceptation float32
+	TestExceptation = 33.3
+	assert.Equal(t, safeGetFloat32(float64(33.3)), TestExceptation)
+	assert.Equal(t, safeGetFloat32(float32(33.3)), TestExceptation)
+}
+func TestSafeGetTime(t *testing.T) {
+	value := "2019-09-23T12:50:28+07:00"
+	exceptation, _ := time.Parse(time.RFC3339, value)
+	tt := safeGetTime(value)
+	t.Log(tt)
+	assert.Equal(t, tt, exceptation)
+	// t.Fatalf("P")
+}
+
+type TestA struct {
+	A string `json:"aa"`
+}

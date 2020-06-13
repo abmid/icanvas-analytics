@@ -1,0 +1,14 @@
+name: Development
+
+database:
+    host: "localhost"
+    name: "databasename"
+    username: "databaseuser"
+    password: "databasepassword"
+
+canvas:
+    url: "http://domainlms.com"
+    access_token: "accesstoken"
+
+domain: 
+    port: ":8000"
