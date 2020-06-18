@@ -6,6 +6,7 @@ import (
 
 	"github.com/abmid/icanvas-analytics/internal/analytics/entity"
 	"github.com/abmid/icanvas-analytics/internal/analytics/usecase"
+	"github.com/labstack/echo/v4"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -19,36 +20,45 @@ type ResponseError struct {
 	Message string `json:"message"`
 }
 
-func (AH *AnalyticsHandler) GetBestCourse() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var filter entity.FilterAnalytics
-		err := c.ShouldBind(&filter)
+func (AH *AnalyticsHandler) GetBestCourse() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		filter := new(entity.FilterAnalytics)
+		/**
+		* Bind query to Struct
+		 */
+		err := c.Bind(filter)
 		if err != nil {
 			logrus.Error(err)
-			c.JSON(http.StatusBadRequest, ResponseError{Message: "Parameter Salah"})
-			return
+			return c.JSON(http.StatusBadRequest, ResponseError{Message: "Failed parameter"})
+		}
+		/**
+		* Validate
+		 */
+		if err := c.Validate(filter); err != nil {
+			logrus.Error(err)
+			return c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		}
 		ctx := context.TODO()
-		res, err := AH.AUC.FindBestCourseByFilter(ctx, filter)
+		res, err := AH.AUC.FindBestCourseByFilter(ctx, *filter)
 		if err != nil {
 			logrus.Error(err)
-			c.JSON(http.StatusBadRequest, ResponseError{Message: "Data tidak ditemukan"})
-			return
+			return c.JSON(http.StatusBadRequest, ResponseError{Message: "Data tidak ditemukan"})
+
 		}
 		if res == nil {
-			c.JSON(http.StatusOK, gin.H{
+			return c.JSON(http.StatusOK, gin.H{
 				"messages": "Not Found",
 			})
-			return
+
 		}
-		c.JSON(http.StatusOK, res)
+		return c.JSON(http.StatusOK, res)
 	}
 }
 
-func NewHandler(path string, g *gin.RouterGroup, articleUC usecase.AnalyticsUseCase) {
+func NewHandler(path string, g *echo.Group, articleUC usecase.AnalyticsUseCase) {
 	handler := AnalyticsHandler{
 		AUC: articleUC,
 	}
 	r := g.Group(path)
-	r.GET("courses", handler.GetBestCourse())
+	r.GET("/courses", handler.GetBestCourse())
 }

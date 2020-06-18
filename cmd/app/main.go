@@ -6,8 +6,10 @@ import (
 	"os"
 
 	analytics_handler "github.com/abmid/icanvas-analytics/internal/analytics/delivery/http"
+	"github.com/abmid/icanvas-analytics/internal/validation"
+	echo "github.com/labstack/echo/v4"
+	middleware "github.com/labstack/echo/v4/middleware"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
 	"github.com/spf13/viper"
@@ -55,9 +57,16 @@ func main() {
 	// Init Config LMS
 	canvasUrl := config.GetString("canvas.url")
 	canvasAccessToken := config.GetString("canvas.access_token")
-	gin := gin.Default()
+	// Init Route (echo)
+	e := echo.New()
+	validation.AlphaValidation(e)
+	e.Use(middleware.Logger())
+	/**
+	* Route v1
+	 */
+	r1 := e.Group("/v1")
+	// Analytics Course
 	aUC := analytics_handler.SetupUseCase(db, canvasUrl, canvasAccessToken)
-	r1 := gin.Group("v1")
-	analytics_handler.NewHandler("analytics", r1, aUC)
-	gin.Run(config.GetString("domain.port"))
+	analytics_handler.NewHandler("/analytics", r1, aUC)
+	e.Start(config.GetString("domain.port"))
 }
