@@ -1,3 +1,10 @@
+/*
+ * File Created: Thursday, 4th June 2020 3:07:34 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ *
+ * Copyright (c) 2020 Author
+ */
+
 package entity
 
 import "database/sql"
@@ -13,13 +20,3 @@ type ReportResult struct {
 	CreatedAt          sql.NullTime
 	UpdatedAt          sql.NullTime
 }
-
-// id serial PRIMARY KEY,
-// report_course_id integer references report_courses(id),
-// assigment_count integer,
-// discussion_count integer,
-// student_count integer,
-// finish_grading_count integer,
-// final_score float,
-// created_at timestamp,
-// deleted_at timestamp

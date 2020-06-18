@@ -1,3 +1,10 @@
+/*
+ * File Created: Thursday, 4th June 2020 10:37:11 am
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ *
+ * Copyright (c) 2020 Author
+ */
+
 package http
 
 import (
@@ -42,7 +49,7 @@ func (AH *AnalyticsHandler) GetBestCourse() echo.HandlerFunc {
 		res, err := AH.AUC.FindBestCourseByFilter(ctx, *filter)
 		if err != nil {
 			logrus.Error(err)
-			return c.JSON(http.StatusBadRequest, ResponseError{Message: "Data tidak ditemukan"})
+			return c.JSON(http.StatusBadRequest, ResponseError{Message: "Failed to get resources"})
 
 		}
 		if res == nil {

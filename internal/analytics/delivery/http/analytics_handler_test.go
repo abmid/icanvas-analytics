@@ -20,6 +20,7 @@ import (
 func TestGetBestCourse(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	ctx := context.TODO()
+	// Mock Analytics
 	mockAnalyticsUC := mock_analytics_uc.NewMockAnalyticsUseCase(ctrl)
 	filter := entity.FilterAnalytics{
 		AccountID: 1,
@@ -28,6 +29,7 @@ func TestGetBestCourse(t *testing.T) {
 		{ID: 1, CourseName: "Course Test"},
 	}
 	mockAnalyticsUC.EXPECT().FindBestCourseByFilter(ctx, filter).Return(list, nil)
+	// Init Echo
 	g := echo.New()
 	validation.AlphaValidation(g)
 	gr := g.Group("/v1")
@@ -37,9 +39,6 @@ func TestGetBestCourse(t *testing.T) {
 	f.Set("account_id", "1")
 	req, _ := http.NewRequest("GET", "/v1/analytics/courses?"+f.Encode(), nil)
 	g.ServeHTTP(w, req)
-
-	t.Log(w.Body.String())
-	t.Fatalf("")
 
 	var result []entity.AnalyticsCourse
 	json.NewDecoder(w.Body).Decode(&result)

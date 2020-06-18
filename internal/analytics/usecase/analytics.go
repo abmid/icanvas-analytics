@@ -1,3 +1,9 @@
+/*
+ * File Created: Thursday, 11th June 2020 1:25:01 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ *
+ * Copyright (c) 2020 Author
+ */
 package usecase
 
 import (
