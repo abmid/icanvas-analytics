@@ -17,6 +17,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.0
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
