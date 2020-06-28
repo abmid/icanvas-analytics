@@ -16,7 +16,6 @@ import (
 	"github.com/abmid/icanvas-analytics/pkg/auth"
 	"github.com/labstack/echo/v4"
 
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,9 +53,7 @@ func (AH *AnalyticsHandler) GetBestCourse() echo.HandlerFunc {
 
 		}
 		if res == nil {
-			return c.JSON(http.StatusOK, gin.H{
-				"messages": "Not Found",
-			})
+			return c.JSON(http.StatusOK, ResponseError{Message: "Not found"})
 
 		}
 		return c.JSON(http.StatusOK, res)
