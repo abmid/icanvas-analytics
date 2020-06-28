@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/abmid/icanvas-analytics/internal/analyticsjob/delivery/job"
+	"github.com/abmid/icanvas-analytics/pkg/analyticsjob/delivery/job"
 
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"

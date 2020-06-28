@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	analytics_handler "github.com/abmid/icanvas-analytics/internal/analytics/delivery/http"
 	"github.com/abmid/icanvas-analytics/internal/validation"
+	analytics_handler "github.com/abmid/icanvas-analytics/pkg/analytics/delivery/http"
+	auth_login_handler "github.com/abmid/icanvas-analytics/pkg/auth/login/delivery/http"
+	auth_register_handler "github.com/abmid/icanvas-analytics/pkg/auth/register/delivery/http"
 	echo "github.com/labstack/echo/v4"
 	middleware "github.com/labstack/echo/v4/middleware"
 
@@ -57,6 +59,7 @@ func main() {
 	// Init Config LMS
 	canvasUrl := config.GetString("canvas.url")
 	canvasAccessToken := config.GetString("canvas.access_token")
+	JWTKey := config.GetString("security.secret_key")
 	// Init Route (echo)
 	e := echo.New()
 	validation.AlphaValidation(e)
@@ -65,8 +68,15 @@ func main() {
 	* Route v1
 	 */
 	r1 := e.Group("/v1")
+	// Auth
+	loginUC := auth_login_handler.SetupUseCase(db)
+	auth_login_handler.NewHandler("/auth", r1, JWTKey, loginUC)
+	registerUC := auth_register_handler.SetupUseCase(db)
+	auth_register_handler.NewHandler("/auth", r1, registerUC)
 	// Analytics Course
 	aUC := analytics_handler.SetupUseCase(db, canvasUrl, canvasAccessToken)
-	analytics_handler.NewHandler("/analytics", r1, aUC)
+	analytics_handler.NewHandler("/analytics", r1, JWTKey, aUC)
+
+	// Start Server
 	e.Start(config.GetString("domain.port"))
 }
