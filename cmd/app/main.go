@@ -3,6 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"html/template"
+	"io"
+	"net/http"
 	"os"
 
 	"github.com/abmid/icanvas-analytics/internal/validation"
@@ -16,6 +19,21 @@ import (
 	"github.com/jackc/pgx/stdlib"
 	"github.com/spf13/viper"
 )
+
+type TemplateRenderer struct {
+	templates *template.Template
+}
+
+// Render renders a template document
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+
+	// Add global methods if data is a map
+	if viewContext, isMap := data.(map[string]interface{}); isMap {
+		viewContext["reverse"] = c.Echo().Reverse
+	}
+
+	return t.templates.ExecuteTemplate(w, name, data)
+}
 
 func dbSetup(host, username, dbname, password string) *sql.DB {
 	parse, err := pgx.ParseURI("postgres://" + username + ":" + password + "@" + host + ":5432/" + dbname + "?sslmode=disable")
@@ -64,6 +82,19 @@ func main() {
 	e := echo.New()
 	validation.AlphaValidation(e)
 	e.Use(middleware.Logger())
+
+	renderer := &TemplateRenderer{
+		templates: template.Must(template.ParseGlob("../../web/app/dist/*.html")),
+	}
+	e.Renderer = renderer
+
+	e.Static("/", "../../web/app/dist")
+	// Named route "foobar"
+	e.GET("/", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "index.html", map[string]interface{}{
+			"name": "Dolly!",
+		})
+	})
 	/**
 	* Route v1
 	 */

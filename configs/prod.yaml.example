@@ -1,14 +1,17 @@
-name: Production
+name: Development
 
 database:
     host: "localhost"
-    name: "databasename"
-    username: "databaseuser"
-    password: "databasepassword"
+    name: "dbname"
+    username: "dbuser"
+    password: "dbpass"
 
 canvas:
-    url: "http://domainlms.com"
+    url: "http://canvasurl.com"
     access_token: "accesstoken"
 
 domain: 
     port: ":8000"
+
+security:
+    secret_key: "super-secret"
