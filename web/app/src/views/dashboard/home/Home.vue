@@ -2,7 +2,7 @@
   <container-dashboard>
     <content-header title="Dashboard Home" />
     <content-main>
-      <app-card title="Testing card" addClass="card-primary card-outline" useHeader="true" header="Featured">
+      <app-card title="Testing card" addClass="card-warning card-outline" useHeader="true" header="Featured">
           <template #card-text>
             <p>Now you see me</p>
           </template>
