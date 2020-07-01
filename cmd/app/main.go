@@ -82,6 +82,10 @@ func main() {
 	e := echo.New()
 	validation.AlphaValidation(e)
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowCredentials: true,
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	renderer := &TemplateRenderer{
 		templates: template.Must(template.ParseGlob("../../web/app/dist/*.html")),

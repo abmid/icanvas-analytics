@@ -42,7 +42,13 @@ func TestGetBestCourse(t *testing.T) {
 	f := make(url.Values)
 	f.Set("account_id", "1")
 	req, _ := http.NewRequest("GET", "/v1/analytics/courses?"+f.Encode(), nil)
-	req.Header.Add(echo.HeaderAuthorization, "Bearer "+token)
+	// req.Header.Add(echo.HeaderAuthorization, "Bearer "+token)
+	cookieToken := http.Cookie{
+		Name:     "icanvas_token",
+		Value:    token,
+		HttpOnly: true,
+	}
+	req.AddCookie(&cookieToken)
 	g.ServeHTTP(w, req)
 
 	var result []entity.AnalyticsCourse

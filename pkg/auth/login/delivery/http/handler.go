@@ -70,6 +70,11 @@ func (AH *AuthHandler) Login() echo.HandlerFunc {
 			return err
 		}
 
+		err = auth.WriteTokenCookie(c, token)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, ResponseError{Message: "Failed securing token"})
+		}
+
 		return c.JSON(http.StatusOK, ResponseSuccess{
 			Email: user.Email,
 			Name:  user.Name,

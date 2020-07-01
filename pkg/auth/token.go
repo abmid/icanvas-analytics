@@ -3,6 +3,8 @@ package auth
 import (
 	"encoding/json"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
@@ -21,6 +23,17 @@ func HandleToken(c echo.Context) (JwtCustomClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func WriteTokenCookie(c echo.Context, token string) error {
+	cookie := new(http.Cookie)
+	cookie.Name = "icanvas_token"
+	cookie.Value = token
+	cookie.Expires = time.Now().Add(8760 * time.Hour)
+	cookie.HttpOnly = true
+	cookie.Path = "/"
+	c.SetCookie(cookie)
+	return nil
 }
 
 func GenerateTokenDummy(userID int, jwtKey string) string {
