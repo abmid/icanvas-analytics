@@ -11,6 +11,7 @@ import (
 	"github.com/abmid/icanvas-analytics/internal/validation"
 	analytics_handler "github.com/abmid/icanvas-analytics/pkg/analytics/delivery/http"
 	auth_login_handler "github.com/abmid/icanvas-analytics/pkg/auth/login/delivery/http"
+	auth_logout_handler "github.com/abmid/icanvas-analytics/pkg/auth/logout/delivery/http"
 	auth_register_handler "github.com/abmid/icanvas-analytics/pkg/auth/register/delivery/http"
 	echo "github.com/labstack/echo/v4"
 	middleware "github.com/labstack/echo/v4/middleware"
@@ -106,6 +107,7 @@ func main() {
 	// Auth
 	loginUC := auth_login_handler.SetupUseCase(db)
 	auth_login_handler.NewHandler("/auth", r1, JWTKey, loginUC)
+	auth_logout_handler.NewHandler("/auth", r1)
 	registerUC := auth_register_handler.SetupUseCase(db)
 	auth_register_handler.NewHandler("/auth", r1, registerUC)
 	// Analytics Course

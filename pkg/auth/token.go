@@ -1,3 +1,10 @@
+/*
+ * File Created: Saturday, 27th June 2020 12:46:08 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ *
+ * Copyright (c) 2020 Author
+ */
+
 package auth
 
 import (
@@ -25,13 +32,24 @@ func HandleToken(c echo.Context) (JwtCustomClaims, error) {
 	return claims, nil
 }
 
-func WriteTokenCookie(c echo.Context, token string) error {
+// WriteTokenCookie is function to write cookie flag httpOnly from server
+// When it use for login, the fill for payload is token and when use for logout the fill for payload is logout
+func WriteTokenCookie(c echo.Context, payload string) error {
 	cookie := new(http.Cookie)
-	cookie.Name = "icanvas_token"
-	cookie.Value = token
-	cookie.Expires = time.Now().Add(8760 * time.Hour)
-	cookie.HttpOnly = true
-	cookie.Path = "/"
+	if payload == "logout" {
+		cookie.Name = "icanvas_token"
+		cookie.Value = "logout"
+		cookie.Expires = time.Unix(0, 0)
+		cookie.MaxAge = -1
+		cookie.HttpOnly = true
+		cookie.Path = "/"
+	} else {
+		cookie.Name = "icanvas_token"
+		cookie.Value = payload
+		cookie.Expires = time.Now().Add(8760 * time.Hour)
+		cookie.HttpOnly = true
+		cookie.Path = "/"
+	}
 	c.SetCookie(cookie)
 	return nil
 }
