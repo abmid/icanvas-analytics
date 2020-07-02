@@ -8,7 +8,7 @@
 <template>
   <div class="card">
     <div class="card-body login-card-body">
-      <p class="login-box-msg">Sign in to start your session</p>
+      <p class="login-box-msg">{{ title }}</p>
         <slot />
     </div>
     <div v-if="loading" class="overlay"><i class="fas fa-2x fa-sync-alt fa-spin"></i></div>    
@@ -22,6 +22,10 @@ export default {
     loading : {
       type: Boolean,
       default : () => { false}
+    },
+    title: {
+      type: String,
+      required: true
     }
   }
 }

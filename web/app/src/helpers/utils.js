@@ -24,5 +24,5 @@ export function getUser() {
     }
 
     return JSON.parse(userStr);
-   
+
 }

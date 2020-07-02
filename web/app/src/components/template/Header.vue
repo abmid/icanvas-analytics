@@ -57,11 +57,16 @@
 </template>
 
 <script>
+import iMixins from "@/helpers/mixins"
 export default {
+  mixin: [iMixins],
   methods : {
     handleLogout : function(){
       this.$store.dispatch("auth/logout").then(res => {
-        console.log(res)
+        if (res.status == 200) {
+          location.reload()
+        }
+        this.$$_TOAST_SHOW("danger", "Failed Logout", res.data.message)
       }).catch(err => {
         console.log(err)
       })

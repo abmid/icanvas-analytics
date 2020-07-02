@@ -52,3 +52,32 @@ func TestFind(t *testing.T) {
 		assert.Equal(t, res == nil, true)
 	})
 }
+
+func TestAll(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	t.Run("exist", func(t *testing.T) {
+
+		mockRepo := repo.NewMockUserRepository(ctrl)
+		user := []entity.User{
+			{ID: 1},
+		}
+		mockRepo.EXPECT().All().Return(user, nil)
+
+		uc := New(mockRepo)
+		res, err := uc.All()
+		assert.NilError(t, err)
+		assert.Equal(t, len(res), 1)
+	})
+	t.Run("not-exist", func(t *testing.T) {
+
+		mockRepo := repo.NewMockUserRepository(ctrl)
+		user := []entity.User{}
+		mockRepo.EXPECT().All().Return(user, nil)
+
+		uc := New(mockRepo)
+		res, err := uc.All()
+		assert.NilError(t, err)
+		assert.Equal(t, len(res), 0)
+
+	})
+}

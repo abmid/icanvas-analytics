@@ -23,4 +23,5 @@ func NewHandler(basePath string, g *echo.Group, registerUC usecase.RegisterUseCa
 
 	r := g.Group(basePath)
 	r.POST("/register", handler.Register())
+	r.GET("/register/check", handler.RegisterCheck())
 }

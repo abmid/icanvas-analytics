@@ -20,3 +20,21 @@ export function logout() {
         withCredentials: true
     })
 }
+
+export function register(name, email, password){
+  const data = {
+    name, email, password
+  }
+  return request({
+    url: '/auth/register',
+    method: "post",
+    data
+  })
+}
+
+export function registerCheck(){
+  return request({
+    url: "/auth/register/check",
+    methods: "GET"
+  })
+}

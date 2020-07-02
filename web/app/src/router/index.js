@@ -9,6 +9,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 import AuthLogin from "@/views/auth/Login.vue"
+import AuthRegister from "@/views/auth/Register.vue"
 
 const DashboardHome = () => import("@/views/dashboard/home/Home.vue")
 
@@ -24,6 +25,15 @@ Vue.use(VueRouter)
       title : "Login"
     }
   },
+  {
+    path: '/welcome',
+    name: 'welcome',
+    component: AuthRegister,
+    meta : {
+      requiredAuth : false,
+      title : "Welcome"
+    }
+  },  
   {
     path: '/home',
     name: 'dashboard.home',

@@ -6,7 +6,7 @@
  */
 
 <template>
-  <button v-bind:type="type" class="btn" v-bind:class="addClass">Sign In</button>
+  <button v-bind:type="type" class="btn" v-bind:class="addClass">{{title}}</button>
 </template>
 
 <script>

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -60,4 +61,43 @@ func TestFind(t *testing.T) {
 		assert.Equal(t, res == nil, true)
 	})
 
+}
+
+func TestAll(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	t.Run("user-exist", func(t *testing.T) {
+		user := entity.User{
+			ID: 1,
+		}
+		mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "password", "created_at", "deleted_at"}).AddRow(
+			user.ID,
+			user.Name,
+			user.Email,
+			user.Password,
+			user.CreatedAt,
+			user.DeletedAt,
+		))
+		repo := NewPG(db)
+		res, err := repo.All()
+		assert.NilError(t, err)
+		assert.Equal(t, len(res), 1)
+	})
+	t.Run("user-not-exist", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"id", "name", "email", "password", "created_at", "deleted_at"}))
+		repo := NewPG(db)
+		res, err := repo.All()
+		assert.NilError(t, err)
+		assert.Equal(t, len(res), 0)
+	})
+	t.Run("error", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").WillReturnError(errors.New("errors"))
+		repo := NewPG(db)
+		res, err := repo.All()
+		assert.ErrorContains(t, err, "")
+		assert.Equal(t, len(res), 0)
+	})
 }

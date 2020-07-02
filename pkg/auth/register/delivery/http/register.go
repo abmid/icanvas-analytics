@@ -28,6 +28,10 @@ type ResponseSuccess struct {
 	ID uint32 `json:"id"`
 }
 
+type ResponseRegisterCheck struct {
+	Status bool `json:"status"`
+}
+
 func hashAndSalt(password string) (string, error) {
 	pwd := []byte(password)
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
@@ -77,5 +81,18 @@ func (h *RegisterHandler) Register() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusCreated, ResponseSuccess{ID: user.ID})
+	}
+}
+
+func (RH *RegisterHandler) RegisterCheck() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		isRegister, err := RH.registerUC.RegisterCheck()
+		if err != nil {
+			return c.JSON(http.StatusConflict, ResponseError{Message: err.Error()})
+		}
+		if isRegister {
+			return c.JSON(http.StatusOK, ResponseRegisterCheck{Status: true})
+		}
+		return c.JSON(http.StatusOK, ResponseRegisterCheck{Status: false})
 	}
 }

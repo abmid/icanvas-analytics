@@ -20,6 +20,7 @@ import (
 func TestRegister(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	userUC := user_uc_mock.NewMockUserUseCase(ctrl)
+	userUC.EXPECT().All().Return([]entity.User{}, nil)
 	userUC.EXPECT().Create(gomock.Any()).DoAndReturn(func(r *entity.User) error {
 		r.ID = 1
 		return nil
@@ -45,4 +46,50 @@ func TestRegister(t *testing.T) {
 	json.NewDecoder(w.Body).Decode(&result)
 	assert.Equal(t, http.StatusCreated, w.Code)
 	assert.Equal(t, result.ID, uint32(1))
+}
+
+func TestRegisterCheck(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	t.Run("register-true", func(t *testing.T) {
+		userUC := user_uc_mock.NewMockUserUseCase(ctrl)
+		userUC.EXPECT().All().Return([]entity.User{}, nil)
+
+		registerUC := register_usecase.New(userUC)
+
+		e := echo.New()
+		validation.AlphaValidation(e)
+		gr := e.Group("/v1")
+
+		NewHandler("/auth", gr, registerUC)
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/v1/auth/register/check", nil)
+		req.Header.Add(echo.HeaderContentType, echo.MIMEApplicationForm)
+		e.ServeHTTP(w, req)
+
+		var result ResponseRegisterCheck
+		json.NewDecoder(w.Body).Decode(&result)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, true, result.Status)
+	})
+	t.Run("register-false", func(t *testing.T) {
+		userUC := user_uc_mock.NewMockUserUseCase(ctrl)
+		userUC.EXPECT().All().Return([]entity.User{{ID: 1}}, nil)
+
+		registerUC := register_usecase.New(userUC)
+
+		e := echo.New()
+		validation.AlphaValidation(e)
+		gr := e.Group("/v1")
+
+		NewHandler("/auth", gr, registerUC)
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/v1/auth/register/check", nil)
+		req.Header.Add(echo.HeaderContentType, echo.MIMEApplicationForm)
+		e.ServeHTTP(w, req)
+
+		var result ResponseRegisterCheck
+		json.NewDecoder(w.Body).Decode(&result)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, false, result.Status)
+	})
 }

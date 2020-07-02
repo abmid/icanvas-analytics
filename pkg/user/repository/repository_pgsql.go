@@ -52,6 +52,32 @@ func (r *repositoryPG) Create(user *entity.User) error {
 	return nil
 }
 
+func (r *repositoryPG) All() (res []entity.User, err error) {
+	query := r.sq.Select("id", "name", "email", "password", "created_at", "updated_at").From(DB_NAME).RunWith(r.DB)
+	rows, err := query.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		user := entity.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Email,
+			&user.Password,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, user)
+	}
+
+	return res, nil
+}
+
 func (r *repositoryPG) Find(email string) (res *entity.User, err error) {
 	query := r.sq.Select("id", "name", "email", "password", "created_at", "updated_at").
 		From(DB_NAME).

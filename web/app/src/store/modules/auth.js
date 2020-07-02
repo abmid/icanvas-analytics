@@ -1,5 +1,5 @@
 import {getUser} from "@/helpers/utils"
-import {login, logout} from "@/api/auth/auth"
+import {login, logout, register, registerCheck} from "@/api/auth/auth"
 
 const user = getUser()
 
@@ -28,6 +28,7 @@ const actions = {
                 email : resLogin.data.email,
                 name : resLogin.data.name
             }
+            localStorage.setItem("icanvas_user", JSON.stringify(payload));
             commit("LOGIN_SUCCESS", payload)
         }
 
@@ -40,6 +41,17 @@ const actions = {
             commit("LOGOUT")
         }
         return resLogout
+    },
+    async register({commit}, payload){
+        let resRegister = await register(payload.name, payload.email, payload.password)
+        if (resRegister.status == 201) {
+            commit("REGISTER_SUCCESS")
+        }
+        return resRegister
+    },
+    async registerCheck(){
+        let resRegisterCheck = await registerCheck()
+        return resRegisterCheck
     }
 }
 
@@ -48,12 +60,14 @@ const actions = {
 const mutations = {
     LOGIN_SUCCESS : (state, payload) => {
         state.currentUser = Object.assign({}, payload)
-        localStorage.setItem("icanvas_user", JSON.stringify(state.currentUser));
     },
     LOGOUT : (state) => {
         state.currentUser = null
         state.isLogin = false
-    }
+    },
+    REGISTER_SUCCESS : (state) => {
+        state.welcome = false
+    },
 }
 
 export default {

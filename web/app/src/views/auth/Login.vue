@@ -1,6 +1,6 @@
 <template>
 <container-auth>
-  <i-card-login :loading="status.loading">
+  <i-card-login :loading="status.loading" title="Sign in to start your sessions">
       <!-- Notifications -->
       <i-callout v-if="errors.message" title="Login Failed" addClass="callout-danger">
         <p>{{errors.message}}</p>
@@ -43,7 +43,6 @@
 
       <div class="social-auth-links text-center mb-3">
         <p>- OR -</p>
-        <router-link :to="{ name: 'dashboard.home'}">User</router-link>
         <a href="#" class="btn btn-block btn-danger">
           <i></i> Forgot my password
         </a>
@@ -88,7 +87,7 @@ export default {
       this.$store.dispatch("auth/login", this.form).then(
         res => {
           if (res.status == 200) {
-            this.$router.push({ name: 'dashboard.home', params: { userId: 123 }})
+            this.$router.push({ name: 'dashboard.home', query: { from: 'login' } })
           }
           this.status.loading = false
           this.errors.message = res.data.message
@@ -97,7 +96,20 @@ export default {
         this.status.loading = false
         this.errors.message = err.response.data.message
       })
-    }
+    },
+  },
+  mounted(){
+    this.$store.dispatch("auth/registerCheck")
+    .then(res => {
+      if (res.status == 200) {
+        if (res.data.status == true) {
+          this.$router.push({name: "welcome"})
+        }
+      }
+    })
+    .catch(err => {
+      console.log(err)
+    })
   }
 }
 </script>

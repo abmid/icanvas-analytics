@@ -61,3 +61,18 @@ func (mr *MockUserUseCaseMockRecorder) Find(email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockUserUseCase)(nil).Find), email)
 }
+
+// All mocks base method
+func (m *MockUserUseCase) All() ([]entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "All")
+	ret0, _ := ret[0].([]entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// All indicates an expected call of All
+func (mr *MockUserUseCaseMockRecorder) All() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockUserUseCase)(nil).All))
+}

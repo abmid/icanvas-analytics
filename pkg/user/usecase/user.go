@@ -30,3 +30,11 @@ func (uc *userUseCase) Find(email string) (*entity.User, error) {
 	}
 	return res, err
 }
+
+func (uc *userUseCase) All() ([]entity.User, error) {
+	res, err := uc.userRepo.All()
+	if err != nil {
+		return nil, err
+	}
+	return res, err
+}

@@ -10,4 +10,5 @@ import "github.com/abmid/icanvas-analytics/pkg/user/entity"
 
 type RegisterUseCase interface {
 	Register(user *entity.User) error
+	RegisterCheck() (bool, error)
 }
