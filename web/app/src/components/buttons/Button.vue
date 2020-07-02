@@ -1,3 +1,10 @@
+/*
+ * File Created: Monday, 29th June 2020 7:23:00 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ * 
+ * Copyright (c) 2020 Author
+ */
+
 <template>
   <button v-bind:type="type" class="btn" v-bind:class="addClass">Sign In</button>
 </template>

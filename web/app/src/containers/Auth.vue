@@ -1,3 +1,10 @@
+/*
+ * File Created: Monday, 29th June 2020 6:22:20 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ * 
+ * Copyright (c) 2020 Author
+ */
+
 <template>
 <div class="login-box">
   <div class="login-logo">

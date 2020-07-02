@@ -1,3 +1,10 @@
+/*
+ * File Created: Monday, 29th June 2020 11:52:52 am
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ * 
+ * Copyright (c) 2020 Author
+ */
+
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
@@ -11,12 +18,20 @@ Vue.use(VueRouter)
   {
     path: '/',
     name: 'login',
-    component: AuthLogin
+    component: AuthLogin,
+    meta : {
+      requiredAuth : false,
+      title : "Login"
+    }
   },
   {
     path: '/home',
-    name: 'home',
-    component: DashboardHome
+    name: 'dashboard.home',
+    component: DashboardHome,
+    meta : {
+      requiredAuth : true,
+      title : "Home"
+    }
   }
 ]
 

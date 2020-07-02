@@ -1,3 +1,10 @@
+/*
+ * File Created: Monday, 29th June 2020 5:23:58 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ * 
+ * Copyright (c) 2020 Author
+ */
+
 <template>
   <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-dark-warning elevation-4">
@@ -16,7 +23,7 @@
           <img src="@/assets/user.png" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block">Alexander Pierce</a>
+          <a href="#" class="d-block">{{ getName}}</a>
         </div>
       </div>
 
@@ -48,12 +55,7 @@
                   <p>Courses</p>
                 </a>
               </li>
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Inactive Page</p>
-                </a>
-              </li>
+              <!-- Next features -->
             </ul>
           </li>
         </ul>
@@ -66,7 +68,17 @@
 
 <script>
 export default {
-
+  computed : {
+    getName : function(){
+      var name = this.upperCaseFirst(this.$store.getters["auth/currentUser"].name)
+      return name
+    }
+  },
+  methods : {
+    upperCaseFirst(name){
+      return name.charAt(0).toUpperCase() + name.slice(1);      
+    }
+  }
 }
 </script>
 

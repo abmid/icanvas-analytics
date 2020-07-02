@@ -1,3 +1,10 @@
+/*
+ * File Created: Monday, 29th June 2020 5:24:55 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ * 
+ * Copyright (c) 2020 Author
+ */
+
 <template>
   <!-- Main Footer -->
   <footer class="main-footer">

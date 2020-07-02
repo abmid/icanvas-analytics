@@ -1,3 +1,10 @@
+/*
+ * File Created: Monday, 29th June 2020 5:26:04 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ * 
+ * Copyright (c) 2020 Author
+ */
+
 <template>
   <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">

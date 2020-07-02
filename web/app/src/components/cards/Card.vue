@@ -1,3 +1,10 @@
+/*
+ * File Created: Monday, 29th June 2020 5:48:20 pm
+ * Author: Abdul Hamid (abdul.surel@gmail.com)
+ * 
+ * Copyright (c) 2020 Author
+ */
+
 <template>
     <div class="card" v-bind:class="addClass">
         <!-- props use header el -->
