@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/abmid/icanvas-analytics/internal/validation"
 	analytics_handler "github.com/abmid/icanvas-analytics/pkg/analytics/delivery/http"
 	auth_login_handler "github.com/abmid/icanvas-analytics/pkg/auth/login/delivery/http"
 	auth_logout_handler "github.com/abmid/icanvas-analytics/pkg/auth/logout/delivery/http"
 	auth_register_handler "github.com/abmid/icanvas-analytics/pkg/auth/register/delivery/http"
+	canvas_account_handler "github.com/abmid/icanvas-analytics/pkg/canvas/account/delivery/http"
 	echo "github.com/labstack/echo/v4"
 	middleware "github.com/labstack/echo/v4/middleware"
 
@@ -48,7 +51,21 @@ func dbSetup(host, username, dbname, password string) *sql.DB {
 	return db
 }
 
-func readConfig() *viper.Viper {
+/**
+* Get Root Path Project
+* @return string
+ */
+func GetRootPath() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// this process to get root project, because binary file main in this location today
+	rootPath := filepath.Join(dir, "../..")
+	return rootPath
+}
+
+func readConfig(rootPath string) *viper.Viper {
 	v := viper.New()
 	getEnv := os.Getenv("APP_ENV")
 	if getEnv == "production" {
@@ -56,18 +73,20 @@ func readConfig() *viper.Viper {
 	} else {
 		v.SetConfigName("dev") // name of config file (without extension)
 	}
-	v.SetConfigType("yaml")          // REQUIRED if the config file does not have the extension in the name
-	v.AddConfigPath("../../configs") // path to look for the config file in
-	err := v.ReadInConfig()          // Find and read the config file
-	if err != nil {                  // Handle errors reading the config file
+	v.SetConfigType("yaml")                // REQUIRED if the config file does not have the extension in the name
+	v.AddConfigPath(rootPath + "/configs") // path to look for the config file in
+	err := v.ReadInConfig()                // Find and read the config file
+	if err != nil {                        // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 	return v
 }
 
 func main() {
+	// Get Root Path
+	rootPath := GetRootPath()
 	// Init Config
-	config := readConfig()
+	config := readConfig(rootPath)
 	// InitDB
 	dbHost := config.GetString("database.host")
 	dbUsername := config.GetString("database.username")
@@ -113,6 +132,9 @@ func main() {
 	// Analytics Course
 	aUC := analytics_handler.SetupUseCase(db, canvasUrl, canvasAccessToken)
 	analytics_handler.NewHandler("/analytics", r1, JWTKey, aUC)
+	// Canvas
+	canvasAccountUC := canvas_account_handler.SetupUseCase(canvasUrl, canvasAccessToken)
+	canvas_account_handler.NewHandler("/canvas", r1, JWTKey, canvasAccountUC)
 
 	// Start Server
 	e.Start(config.GetString("domain.port"))

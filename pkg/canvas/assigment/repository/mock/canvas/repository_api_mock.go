@@ -1,9 +1,10 @@
 package mock_assigment
 
 import (
-	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	"net/http"
 	"strconv"
+
+	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 
 	"github.com/gin-gonic/gin"
 )
