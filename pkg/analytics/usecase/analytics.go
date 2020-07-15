@@ -9,6 +9,7 @@ package usecase
 import (
 	"context"
 
+	"github.com/abmid/icanvas-analytics/internal/pagination"
 	"github.com/abmid/icanvas-analytics/pkg/analytics/entity"
 	"github.com/abmid/icanvas-analytics/pkg/analytics/repository"
 )
@@ -23,10 +24,10 @@ func NewAnalyticsUseCase(repoAnalytics repository.AnalyticsRepository) *Analytic
 	}
 }
 
-func (aUC *AnalyticsUC) FindBestCourseByFilter(ctx context.Context, filter entity.FilterAnalytics) (res []entity.AnalyticsCourse, err error) {
-	res, err = aUC.repoAnalytics.FindBestCourseByFilter(ctx, filter)
+func (aUC *AnalyticsUC) FindBestCourseByFilter(ctx context.Context, filter entity.FilterAnalytics) (res []entity.AnalyticsCourse, pag pagination.Pagination, err error) {
+	res, pag, err = aUC.repoAnalytics.FindBestCourseByFilter(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, pag, err
 	}
-	return res, nil
+	return res, pag, nil
 }

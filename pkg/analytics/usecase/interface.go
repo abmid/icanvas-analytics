@@ -10,9 +10,10 @@ package usecase
 import (
 	"context"
 
+	"github.com/abmid/icanvas-analytics/internal/pagination"
 	"github.com/abmid/icanvas-analytics/pkg/analytics/entity"
 )
 
 type AnalyticsUseCase interface {
-	FindBestCourseByFilter(ctx context.Context, filter entity.FilterAnalytics) ([]entity.AnalyticsCourse, error)
+	FindBestCourseByFilter(ctx context.Context, filter entity.FilterAnalytics) ([]entity.AnalyticsCourse, pagination.Pagination, error)
 }

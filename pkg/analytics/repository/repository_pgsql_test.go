@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/abmid/icanvas-analytics/pkg/analytics/entity"
 	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 
@@ -41,10 +43,12 @@ func TestFindBestCourseByFilterReal(t *testing.T) {
 	repo := NewRepositoryPG(RealSetup())
 	filter := entity.FilterAnalytics{
 		OrderBy:          "desc",
-		AnalyticsTeacher: true,
-		Limit:            9,
+		AnalyticsTeacher: false,
+		Limit:            100,
+		Page:             2,
 	}
-	res, err := repo.FindBestCourseByFilter(ctx, filter)
+	res, pag, err := repo.FindBestCourseByFilter(ctx, filter)
+	t.Log(pag)
 	t.Log(err)
 	for _, each := range res {
 		t.Log(each)
@@ -52,11 +56,25 @@ func TestFindBestCourseByFilterReal(t *testing.T) {
 	t.Fatalf("")
 }
 
-func TestT(t *testing.T) {
-	rsult := (float32(1) / float32(1)) * 100
-	t.Log(rsult)
-	t.Logf("P")
-	t.Fatalf("")
+func TestBuildPagination(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"total_count"}).AddRow(7))
+	filter := entity.FilterAnalytics{
+		AnalyticsTeacher: true,
+	}
+	repo := NewRepositoryPG(db)
+	var query squirrel.SelectBuilder
+	query = repo.sq.Select().From("report_courses")
+	res, err := repo.buildPaginationInfo(query, filter)
+
+	ress, _ := json.Marshal(res)
+	t.Fatal(string(ress))
+	assert.NilError(t, err)
+	assert.Equal(t, res.Total, uint32(1))
 }
 
 func TestFindBestCourseByFilter(t *testing.T) {
@@ -94,12 +112,13 @@ func TestFindBestCourseByFilter(t *testing.T) {
 		filter := entity.FilterAnalytics{
 			AnalyticsTeacher: false,
 		}
-		res, err := repo.FindBestCourseByFilter(ctx, filter)
+		res, _, err := repo.FindBestCourseByFilter(ctx, filter)
+		t.Fatal(err)
 		assert.NilError(t, err)
 		assert.Equal(t, len(res), 1)
 		averagaGrading := (float32(exceptedResult.FinishGradingCount) / float32(exceptedResult.StudentCount)) * 100
-		assert.Equal(t, res[0].AverageGrading, averagaGrading)
-		assert.Equal(t, res[0].CourseName, exceptedResult.CourseName)
+		assert.Equal(t, res[0].AverageGrading, averagaGrading, "error course average grade")
+		assert.Equal(t, res[0].CourseName, exceptedResult.CourseName, "error course courseName")
 	})
 	t.Run("teacher", func(t *testing.T) {
 		t.Run("course", func(t *testing.T) {
@@ -141,13 +160,13 @@ func TestFindBestCourseByFilter(t *testing.T) {
 			filter := entity.FilterAnalytics{
 				AnalyticsTeacher: true,
 			}
-			res, err := repo.FindBestCourseByFilter(ctx, filter)
+			res, _, err := repo.FindBestCourseByFilter(ctx, filter)
 			assert.NilError(t, err)
 			assert.Equal(t, len(res), 1)
 			averagaGrading := (float32(exceptedResult.FinishGradingCount) / float32(exceptedResult.StudentCount)) * 100
-			assert.Equal(t, res[0].AverageGrading, averagaGrading)
-			assert.Equal(t, res[0].CourseName, exceptedResult.CourseName)
-			assert.Equal(t, res[0].Teacher.LoginID, exceptedTeacher.LoginID)
+			assert.Equal(t, res[0].AverageGrading, averagaGrading, "Error teacher Average Grade")
+			assert.Equal(t, res[0].CourseName, exceptedResult.CourseName, "Error teacher CourseName")
+			assert.Equal(t, res[0].Teacher.LoginID, exceptedTeacher.LoginID, "Error teacher LoginID")
 		})
 	})
 }

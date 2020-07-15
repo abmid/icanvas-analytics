@@ -6,6 +6,7 @@ package mock_usecase
 
 import (
 	context "context"
+	pagination "github.com/abmid/icanvas-analytics/internal/pagination"
 	entity "github.com/abmid/icanvas-analytics/pkg/analytics/entity"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -35,12 +36,13 @@ func (m *MockAnalyticsUseCase) EXPECT() *MockAnalyticsUseCaseMockRecorder {
 }
 
 // FindBestCourseByFilter mocks base method
-func (m *MockAnalyticsUseCase) FindBestCourseByFilter(ctx context.Context, filter entity.FilterAnalytics) ([]entity.AnalyticsCourse, error) {
+func (m *MockAnalyticsUseCase) FindBestCourseByFilter(ctx context.Context, filter entity.FilterAnalytics) ([]entity.AnalyticsCourse, pagination.Pagination, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindBestCourseByFilter", ctx, filter)
 	ret0, _ := ret[0].([]entity.AnalyticsCourse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(pagination.Pagination)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // FindBestCourseByFilter indicates an expected call of FindBestCourseByFilter

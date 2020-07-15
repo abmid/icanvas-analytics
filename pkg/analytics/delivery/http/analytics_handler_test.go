@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/abmid/icanvas-analytics/internal/pagination"
 	"github.com/abmid/icanvas-analytics/internal/validation"
 	"github.com/abmid/icanvas-analytics/pkg/analytics/entity"
 	mock_analytics_uc "github.com/abmid/icanvas-analytics/pkg/analytics/usecase/mock"
@@ -29,7 +30,10 @@ func TestGetBestCourse(t *testing.T) {
 	list := []entity.AnalyticsCourse{
 		{ID: 1, CourseName: "Course Test"},
 	}
-	mockAnalyticsUC.EXPECT().FindBestCourseByFilter(ctx, filter).Return(list, nil)
+	pag := pagination.Pagination{
+		CurrentPage: 1,
+	}
+	mockAnalyticsUC.EXPECT().FindBestCourseByFilter(ctx, filter).Return(list, pag, nil)
 	// Init Echo
 	g := echo.New()
 	validation.AlphaValidation(g)
@@ -41,6 +45,7 @@ func TestGetBestCourse(t *testing.T) {
 	w := httptest.NewRecorder()
 	f := make(url.Values)
 	f.Set("account_id", "1")
+	f.Set("date", "2020-01-02")
 	req, _ := http.NewRequest("GET", "/v1/analytics/courses?"+f.Encode(), nil)
 	// req.Header.Add(echo.HeaderAuthorization, "Bearer "+token)
 	cookieToken := http.Cookie{
@@ -51,8 +56,8 @@ func TestGetBestCourse(t *testing.T) {
 	req.AddCookie(&cookieToken)
 	g.ServeHTTP(w, req)
 
-	var result []entity.AnalyticsCourse
+	var result ResponsePagination
 	json.NewDecoder(w.Body).Decode(&result)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, len(result), len(list))
+	assert.Equal(t, len(result.Data), len(list))
 }
