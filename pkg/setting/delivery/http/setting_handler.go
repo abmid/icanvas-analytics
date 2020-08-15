@@ -141,4 +141,6 @@ func NewHandler(path string, g *echo.Group, JWTKey string, settingUC usecase.Set
 	r.GET("/filter", handler.FindByFilter())
 	// Store spesific for canvas setting
 	r.POST("/canvas", handler.CreateOrUpdateCanvas())
+	// Get CanvasConfiguration and check
+	r.GET("/canvas", handler.ExistsCanvasConfig())
 }

@@ -10,6 +10,7 @@ package http
 import (
 	"net/http"
 
+	"github.com/abmid/icanvas-analytics/internal/inerr"
 	"github.com/abmid/icanvas-analytics/pkg/setting/entity"
 	echo "github.com/labstack/echo/v4"
 )
@@ -42,5 +43,24 @@ func (SH *SettingHandler) CreateOrUpdateCanvas() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, ResponseSuccess{Message: "success"})
+	}
+}
+
+func (SH *SettingHandler) ExistsCanvasConfig() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Get From UseCase
+		exists, url, token, err := SH.SettingUseCase.ExistsCanvasConfig()
+		if err != nil {
+			return c.JSON(http.StatusConflict, ResponseError{Message: err.Error()})
+		}
+
+		if !exists {
+			return c.JSON(http.StatusConflict, ResponseError{Message: inerr.ErrNoCanvasConfig.Error()})
+		}
+
+		return c.JSON(http.StatusOK, echo.Map{
+			"url":   url,
+			"token": token,
+		})
 	}
 }

@@ -8,6 +8,7 @@
 package usecase
 
 import (
+	"github.com/abmid/icanvas-analytics/internal/inerr"
 	"github.com/abmid/icanvas-analytics/pkg/setting/entity"
 	"github.com/abmid/icanvas-analytics/pkg/setting/repository"
 )
@@ -102,6 +103,11 @@ func (UC *settingUseCase) FindCanvasURL() (res *entity.Setting, err error) {
 		return nil, nil
 	}
 
+	// if data exist but empty value
+	if settings[0].Value == "" {
+		return nil, nil
+	}
+
 	return &settings[0], nil
 }
 
@@ -120,5 +126,24 @@ func (UC *settingUseCase) FindCanvasToken() (res *entity.Setting, err error) {
 		return nil, nil
 	}
 
+	// if data exist but empty value
+	if settings[0].Value == "" {
+		return nil, nil
+	}
+
 	return &settings[0], nil
+}
+
+func (UC *settingUseCase) ExistsCanvasConfig() (exists bool, url, token string, err error) {
+	resURL, err := UC.FindCanvasURL()
+	if err != nil || resURL == nil {
+		return false, "", "", inerr.ErrNoCanvasConfig
+	}
+
+	resToken, err := UC.FindCanvasToken()
+	if err != nil || resToken == nil {
+		return false, "", "", inerr.ErrNoCanvasConfig
+	}
+
+	return true, resURL.Value, resToken.Value, nil
 }

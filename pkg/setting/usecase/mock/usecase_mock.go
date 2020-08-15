@@ -133,3 +133,20 @@ func (mr *MockSettingUseCaseMockRecorder) FindCanvasToken() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCanvasToken", reflect.TypeOf((*MockSettingUseCase)(nil).FindCanvasToken))
 }
+
+// ExistsCanvasConfig mocks base method
+func (m *MockSettingUseCase) ExistsCanvasConfig() (bool, string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExistsCanvasConfig")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(string)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
+}
+
+// ExistsCanvasConfig indicates an expected call of ExistsCanvasConfig
+func (mr *MockSettingUseCaseMockRecorder) ExistsCanvasConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistsCanvasConfig", reflect.TypeOf((*MockSettingUseCase)(nil).ExistsCanvasConfig))
+}

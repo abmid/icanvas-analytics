@@ -3,6 +3,7 @@ package usecase
 import (
 	"testing"
 
+	"github.com/abmid/icanvas-analytics/internal/inerr"
 	"github.com/abmid/icanvas-analytics/pkg/setting/entity"
 	repo "github.com/abmid/icanvas-analytics/pkg/setting/repository/mock"
 	"github.com/golang/mock/gomock"
@@ -90,7 +91,7 @@ func TestUpdate(t *testing.T) {
 
 }
 
-func TestFindCanvasUrl(t *testing.T) {
+func TestFindCanvasToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	t.Run("exist", func(t *testing.T) {
 		r := repo.NewMockSettingRepository(ctrl)
@@ -99,7 +100,7 @@ func TestFindCanvasUrl(t *testing.T) {
 			Name:     "token",
 		}
 		exResult := []entity.Setting{
-			{Value: "secret-token"},
+			{Value: "my-secret-token"},
 		}
 		r.EXPECT().FindByFilter(filter).Return(exResult, nil)
 
@@ -115,12 +116,55 @@ func TestFindCanvasUrl(t *testing.T) {
 			Category: "canvas",
 			Name:     "token",
 		}
-		exResult := []entity.Setting{}
+		exResult := []entity.Setting{
+			{Name: "token", Category: "canvas"},
+			// dont have value
+		}
 		r.EXPECT().FindByFilter(filter).Return(exResult, nil)
 
 		uc := NewSettingUseCase(r)
 		res, err := uc.FindCanvasToken()
 		assert.NilError(t, err)
 		assert.Check(t, res == nil)
+	})
+}
+
+func TestCheckSettingExists(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	t.Run("exist", func(t *testing.T) {
+		r := repo.NewMockSettingRepository(ctrl)
+		exResultToken := []entity.Setting{
+			{Name: "token", Category: "canvas", Value: "secret"},
+		}
+		exResultUrl := []entity.Setting{
+			{Name: "url", Category: "canvas", Value: "url"},
+		}
+		r.EXPECT().FindByFilter(entity.Setting{Category: "canvas", Name: "token"}).Return(exResultToken, nil)
+		r.EXPECT().FindByFilter(entity.Setting{Category: "canvas", Name: "url"}).Return(exResultUrl, nil)
+
+		uc := NewSettingUseCase(r)
+		exists, url, token, err := uc.ExistsCanvasConfig()
+		assert.NilError(t, err)
+		assert.Equal(t, true, exists)
+		assert.Equal(t, "url", url)
+		assert.Equal(t, "secret", token)
+	})
+	t.Run("not-exists", func(t *testing.T) {
+		r := repo.NewMockSettingRepository(ctrl)
+		exResultToken := []entity.Setting{
+			{Name: "token", Category: "canvas"},
+		}
+		exResultUrl := []entity.Setting{
+			{Name: "url", Category: "canvas"},
+		}
+		r.EXPECT().FindByFilter(entity.Setting{Category: "canvas", Name: "token"}).Return(exResultToken, nil)
+		r.EXPECT().FindByFilter(entity.Setting{Category: "canvas", Name: "url"}).Return(exResultUrl, nil)
+
+		uc := NewSettingUseCase(r)
+		exists, url, token, err := uc.ExistsCanvasConfig()
+		assert.Error(t, err, inerr.ErrNoCanvasConfig.Error())
+		assert.Equal(t, false, exists)
+		assert.Equal(t, "", url)
+		assert.Equal(t, "", token)
 	})
 }

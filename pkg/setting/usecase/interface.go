@@ -10,4 +10,5 @@ type SettingUseCase interface {
 	FindByFilter(filter entity.Setting) ([]entity.Setting, error)
 	FindCanvasURL() (*entity.Setting, error)
 	FindCanvasToken() (*entity.Setting, error)
+	ExistsCanvasConfig() (exists bool, url, token string, err error)
 }
