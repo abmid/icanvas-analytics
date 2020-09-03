@@ -16,6 +16,7 @@ import (
 	auth_logout_handler "github.com/abmid/icanvas-analytics/pkg/auth/logout/delivery/http"
 	auth_register_handler "github.com/abmid/icanvas-analytics/pkg/auth/register/delivery/http"
 	canvas_account_handler "github.com/abmid/icanvas-analytics/pkg/canvas/account/delivery/http"
+	setting_handler "github.com/abmid/icanvas-analytics/pkg/setting/delivery/http"
 	echo "github.com/labstack/echo/v4"
 	middleware "github.com/labstack/echo/v4/middleware"
 
@@ -94,14 +95,17 @@ func main() {
 	dbPassword := config.GetString("database.password")
 	db := dbSetup(dbHost, dbUsername, dbName, dbPassword)
 	defer db.Close()
-	// Init Config LMS
-	canvasUrl := config.GetString("canvas.url")
-	canvasAccessToken := config.GetString("canvas.access_token")
+	// Init JWT Key
 	JWTKey := config.GetString("security.secret_key")
 	// Init Route (echo)
 	e := echo.New()
+	// Remove trailing slash (/)
+	e.Pre(middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{RedirectCode: http.StatusPermanentRedirect}))
+	// Add Custom Validation
 	validation.AlphaValidation(e)
+	// Use Logger
 	e.Use(middleware.Logger())
+	// Use Cors
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowCredentials: true,
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
@@ -115,25 +119,32 @@ func main() {
 	e.Static("/", "../../web/app/dist")
 	// Named route "foobar"
 	e.GET("/", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "index.html", map[string]interface{}{
-			"name": "Dolly!",
-		})
+		return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 	})
 	/**
 	* Route v1
 	 */
 	r1 := e.Group("/v1")
 	// Auth
+	// login
 	loginUC := auth_login_handler.SetupUseCase(db)
 	auth_login_handler.NewHandler("/auth", r1, JWTKey, loginUC)
+	// logout
 	auth_logout_handler.NewHandler("/auth", r1)
+	// register
 	registerUC := auth_register_handler.SetupUseCase(db)
 	auth_register_handler.NewHandler("/auth", r1, registerUC)
+
 	// Analytics Course
-	aUC := analytics_handler.SetupUseCase(db, canvasUrl, canvasAccessToken)
+	aUC := analytics_handler.SetupUseCase(db)
 	analytics_handler.NewHandler("/analytics", r1, JWTKey, aUC)
+
+	// Setting
+	settingUC := setting_handler.SetupUseCase(db)
+	setting_handler.NewHandler("/settings", r1, JWTKey, settingUC)
+
 	// Canvas
-	canvasAccountUC := canvas_account_handler.SetupUseCase(canvasUrl, canvasAccessToken)
+	canvasAccountUC := canvas_account_handler.SetupUseCase(settingUC)
 	canvas_account_handler.NewHandler("/canvas", r1, JWTKey, canvasAccountUC)
 
 	// Start Server

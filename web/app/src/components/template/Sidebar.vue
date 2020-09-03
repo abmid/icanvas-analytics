@@ -33,10 +33,10 @@
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
          <li class="nav-item">
-            <a href="#" class="nav-link">
+            <router-link :to="{name: 'dashboard.home'}" class="nav-link">
               <i class="nav-icon fas fa-th"></i>
               <p>Home</p>
-            </a>
+            </router-link>
           </li>               
           <!-- <li class="nav-item has-treeview menu-open"> -->
           <li class="nav-item has-treeview">
@@ -50,14 +50,21 @@
             <ul class="nav nav-treeview">
               <li class="nav-item">
                 <!-- <a href="#" class="nav-link active"> -->
-                <a href="#" class="nav-link">
+                <router-link :to="{name : 'dashboard.report.course'}" class="nav-link" > 
                   <i class="far fa-circle nav-icon"></i>
-                  <p>Courses</p>
-                </a>
+                  <p>Courses</p> 
+                </router-link>
               </li>
               <!-- Next features -->
             </ul>
           </li>
+          <!-- Settings -->
+         <li class="nav-item">
+            <router-link :to="{name: 'dashboard.setting'}" class="nav-link">
+              <i class="nav-icon fas fa-th"></i>
+              <p>Setting</p>
+            </router-link>
+          </li>             
         </ul>
       </nav>
       <!-- /.sidebar-menu -->

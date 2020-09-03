@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	mock_account "github.com/abmid/icanvas-analytics/pkg/canvas/account/repository/mock/canvas"
+	mock_setting "github.com/abmid/icanvas-analytics/pkg/setting/usecase/mock"
+	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"gotest.tools/assert"
 )
@@ -13,7 +15,12 @@ import (
 func TestListAccount(t *testing.T) {
 	srv := serverMock()
 	defer srv.Close()
-	AccountRepo := NewRepositoryAPI(http.DefaultClient, srv.URL, "my-secret-token")
+	ctrl := gomock.NewController(t)
+	// Mock Setting UC
+	settingUC := mock_setting.NewMockSettingUseCase(ctrl)
+	settingUC.EXPECT().ExistsCanvasConfig().Return(true, srv.URL, "my-secret-token", nil)
+
+	AccountRepo := NewRepositoryAPI(http.DefaultClient, settingUC)
 	res, err := AccountRepo.ListAccount(uint32(1))
 	assert.NilError(t, err, "#Error List Account")
 	assert.Equal(t, len(res), 2, "Result not match")

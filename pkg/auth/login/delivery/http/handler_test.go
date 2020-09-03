@@ -28,7 +28,7 @@ func TestLogin(t *testing.T) {
 	NewHandler("/auth", v1, "super-secret", mockLoginUC)
 
 	w := httptest.NewRecorder()
-	url := new(url.Values)
+	url := make(url.Values)
 	url.Set("email", "test@test.com")
 	url.Set("password", "pass")
 	req, _ := http.NewRequest(echo.POST, "/v1/auth/login", strings.NewReader(url.Encode()))

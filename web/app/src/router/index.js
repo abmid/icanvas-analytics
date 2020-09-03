@@ -12,6 +12,8 @@ import AuthLogin from "@/views/auth/Login.vue"
 import AuthRegister from "@/views/auth/Register.vue"
 
 const DashboardHome = () => import("@/views/dashboard/home/Home.vue")
+const DashboardReportCourse = () => import("@/views/dashboard/reports/Course.vue")
+const DashboardSetting = () => import("@/views/dashboard/settings/Canvas")
 
 Vue.use(VueRouter)
 
@@ -42,7 +44,25 @@ Vue.use(VueRouter)
       requiredAuth : true,
       title : "Home"
     }
-  }
+  },
+  {
+    path: '/report/course',
+    name: 'dashboard.report.course',
+    component: DashboardReportCourse,
+    meta : {
+      requiredAuth : true,
+      title : "Course Reports"
+    }
+  },
+  {
+    path: '/setting',
+    name: 'dashboard.setting',
+    component: DashboardSetting,
+    meta : {
+      requiredAuth: true,
+      title: "Setting"
+    }
+  }  
 ]
 
 const router = new VueRouter({

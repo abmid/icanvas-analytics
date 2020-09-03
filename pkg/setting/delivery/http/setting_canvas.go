@@ -51,11 +51,11 @@ func (SH *SettingHandler) ExistsCanvasConfig() echo.HandlerFunc {
 		// Get From UseCase
 		exists, url, token, err := SH.SettingUseCase.ExistsCanvasConfig()
 		if err != nil {
-			return c.JSON(http.StatusConflict, ResponseError{Message: err.Error()})
+			return c.JSON(http.StatusUnprocessableEntity, ResponseError{Message: err.Error()})
 		}
 
 		if !exists {
-			return c.JSON(http.StatusConflict, ResponseError{Message: inerr.ErrNoCanvasConfig.Error()})
+			return c.JSON(http.StatusUnprocessableEntity, ResponseError{Message: inerr.ErrNoCanvasConfig.Error()})
 		}
 
 		return c.JSON(http.StatusOK, echo.Map{

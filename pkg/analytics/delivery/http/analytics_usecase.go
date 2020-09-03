@@ -14,7 +14,7 @@ import (
 	"github.com/abmid/icanvas-analytics/pkg/analytics/usecase"
 )
 
-func SetupUseCase(db *sql.DB, canvasUrl, canvasAccessToken string) usecase.AnalyticsUseCase {
+func SetupUseCase(db *sql.DB) usecase.AnalyticsUseCase {
 	repoAnalytics := analytics_repo.NewRepositoryPG(db)
 	UC := usecase.NewAnalyticsUseCase(repoAnalytics)
 	return UC

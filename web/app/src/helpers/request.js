@@ -11,7 +11,8 @@ import config from "@/configs/config"
 
 const service = axios.create({
   baseURL: config.apiUrl,
-  timeout: 5000, // request timeout
+  timeout: 5000, // request timeout,
+  withCredentials: true
 });
 
 export default service;

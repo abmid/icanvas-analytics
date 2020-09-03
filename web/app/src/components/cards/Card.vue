@@ -9,10 +9,13 @@
     <div class="card" v-bind:class="addClass">
         <!-- props use header el -->
         <div v-if="useHeader" class="card-header">
-            <h5 class="m-0">{{ header }}</h5>
-        </div>        
+            <h5 class="card-title">{{ title }}</h5>
+            <div class="card-tools">
+                <button v-if="minimize" type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                </button>
+            </div>              
+        </div>                      
         <div class="card-body">
-        <h5 class="card-title">Card title</h5>
             <p class="card-text">
                 <!-- Slot for content Card -->
                 <slot name="card-text"></slot>
@@ -37,8 +40,8 @@ export default {
             type : Boolean,
             default : () => { false }
         },
-        header : {
-            type : String
+        minimize: {
+            type: Boolean
         }
     }
 }
