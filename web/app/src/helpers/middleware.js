@@ -12,7 +12,24 @@ export function middleware(store, router) {
         const appName = "iCanvas Analytics"
         const metaTitle = to.meta.title
         document.title = appName + " - " + metaTitle
-        if(requiresAuth && !currentUser) {
+
+        if(requiresAuth && store.state.setting.canvasConfig == null && to.name != "dashboard.setting"){
+            store.dispatch("setting/isExistsCanvasConfig")
+            .then(res => {
+                if(res.status == 200){
+                    next()
+                }else{
+                    alert("Something problem with canvas configuration")
+                    next({name: "dashboard.setting"});
+                }
+            })
+            .catch(err => {
+                console.log(err)
+                alert("Please fill canvas configuration")
+                next({name: "dashboard.setting"});
+            })
+        }
+        else if(requiresAuth && !currentUser) {
             // if route required auth and user not authenticated
             // redirect to / or login
             next('/');

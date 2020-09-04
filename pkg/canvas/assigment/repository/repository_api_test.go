@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	mock_assigment "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/repository/mock/canvas"
+	mock_setting "github.com/abmid/icanvas-analytics/pkg/setting/usecase/mock"
+	"github.com/golang/mock/gomock"
 
 	"github.com/gin-gonic/gin"
 	"gotest.tools/assert"
@@ -13,8 +15,13 @@ import (
 
 func TestListAssigmentByCourseID(t *testing.T) {
 	srv := serverMock()
+	ctrl := gomock.NewController(t)
 	defer srv.Close()
-	AssigmentRepo := NewRepositoryAPI(http.DefaultClient, srv.URL, "my-secret-token")
+	// Mock Setting UC
+	settingUC := mock_setting.NewMockSettingUseCase(ctrl)
+	settingUC.EXPECT().ExistsCanvasConfig().Return(true, srv.URL, "my-secret-token", nil)
+
+	AssigmentRepo := NewRepositoryAPI(http.DefaultClient, settingUC)
 	res, err := AssigmentRepo.ListAssigmentByCourseID(1)
 	if err != nil {
 		t.Error(err)

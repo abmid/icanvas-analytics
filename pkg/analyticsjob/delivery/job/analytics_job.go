@@ -31,12 +31,13 @@ import (
 	report_uc_enroll "github.com/abmid/icanvas-analytics/pkg/report/enrollment/usecase"
 	report_repo_result "github.com/abmid/icanvas-analytics/pkg/report/result/repository"
 	report_uc_result "github.com/abmid/icanvas-analytics/pkg/report/result/usecase"
+	setting_uc "github.com/abmid/icanvas-analytics/pkg/setting/usecase"
 
 	"github.com/robfig/cron/v3"
 )
 
-func RunScheduling(c *cron.Cron, db *sql.DB, canvasUrl, canvasAccessToken string) {
-	useCase := JobUseCase(db, canvasUrl, canvasAccessToken)
+func RunScheduling(c *cron.Cron, db *sql.DB, settingUC setting_uc.SettingUseCase) {
+	useCase := JobUseCase(db, settingUC)
 	status := true
 	useCase.RunJob(uint32(1))
 	c.AddFunc("@every 0h0m1s", func() {
@@ -49,12 +50,12 @@ func RunScheduling(c *cron.Cron, db *sql.DB, canvasUrl, canvasAccessToken string
 	})
 }
 
-func JobUseCase(db *sql.DB, canvasUrl, canvasAccessToken string) *analyticsjob.AnalyticJobUseCase {
+func JobUseCase(db *sql.DB, settingUC setting_uc.SettingUseCase) *analyticsjob.AnalyticJobUseCase {
 	client := http.DefaultClient
-	canvasRepoAssigment := canvas_repo_assigment.NewRepositoryAPI(client, canvasUrl, canvasAccessToken)
-	canvasRepoCourse := canvas_repo_course.NewRepositoryAPI(client, canvasUrl, canvasAccessToken)
-	canvasRepoDiscussion := canvas_repo_discussion.NewRepositoryAPI(client, canvasUrl, canvasAccessToken)
-	canvasRepoEnroll := canvas_repo_enroll.NewRepositoryAPI(client, canvasUrl, canvasAccessToken)
+	canvasRepoAssigment := canvas_repo_assigment.NewRepositoryAPI(client, settingUC)
+	canvasRepoCourse := canvas_repo_course.NewRepositoryAPI(client, settingUC)
+	canvasRepoDiscussion := canvas_repo_discussion.NewRepositoryAPI(client, settingUC)
+	canvasRepoEnroll := canvas_repo_enroll.NewRepositoryAPI(client, settingUC)
 
 	canvasUCAssigment := canvas_uc_assigment.NewAssigmentUseCase(canvasRepoAssigment)
 	canvasUCCourse := canvas_uc_course.NewCourseUseCase(canvasRepoCourse)

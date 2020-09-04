@@ -1,11 +1,14 @@
 package repository
 
 import (
-	mock_enrollment "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/repository/mock/canvas"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	mock_enrollment "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/repository/mock/canvas"
+	mock_setting "github.com/abmid/icanvas-analytics/pkg/setting/usecase/mock"
+	"github.com/golang/mock/gomock"
 
 	"github.com/gin-gonic/gin"
 	"gotest.tools/assert"
@@ -13,14 +16,18 @@ import (
 
 func TestListEnrollmentByCourseID(t *testing.T) {
 	srv := serverMock()
+	ctrl := gomock.NewController(t)
 	defer srv.Close()
-	EnrollmentRepo := NewRepositoryAPI(http.DefaultClient, srv.URL, "my-secret-token")
+	// Mock Setting UC
+	settingUC := mock_setting.NewMockSettingUseCase(ctrl)
+	settingUC.EXPECT().ExistsCanvasConfig().Return(true, srv.URL, "my-secret-token", nil)
+
+	EnrollmentRepo := NewRepositoryAPI(http.DefaultClient, settingUC)
 	res, err := EnrollmentRepo.ListEnrollmentByCourseID(1)
 	t.Log(res)
 	assert.NilError(t, err, "Error List Enrollment")
 	assert.Equal(t, res[0].ID, uint32(1))
 	assert.Equal(t, len(res), 1)
-	t.Fatalf("P")
 }
 
 func serverMock() *httptest.Server {

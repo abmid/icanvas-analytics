@@ -6,12 +6,29 @@
  */
 
 <template>
-  
+    <input 
+        :type="type" 
+        class="form-control" 
+        :placeholder="placeholder" 
+        v-bind:value="value" 
+        v-on:input="$emit('input', $event.target.value)">
 </template>
 
 <script>
 export default {
-
+    props : {
+        value: {
+            type: String,
+        },
+        type: {
+            type: String,
+            required: true
+        },
+        placeholder: {
+            type: String,
+            required: true
+        }
+    },    
 }
 </script>
 

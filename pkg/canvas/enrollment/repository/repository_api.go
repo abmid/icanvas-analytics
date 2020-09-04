@@ -14,31 +14,40 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/abmid/icanvas-analytics/internal/inerr"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
+	"github.com/abmid/icanvas-analytics/pkg/setting/usecase"
 )
 
 type Repository struct {
-	Client      *http.Client
-	BaseURL     string
-	AccessToken string
+	Client  *http.Client
+	Setting usecase.SettingUseCase
 }
 
-func NewRepositoryAPI(client *http.Client, baseURL, accessToken string) *Repository {
+func NewRepositoryAPI(client *http.Client, settingUC usecase.SettingUseCase) *Repository {
 	return &Repository{
-		Client:      client,
-		BaseURL:     baseURL,
-		AccessToken: accessToken,
+		Client:  client,
+		Setting: settingUC,
 	}
 }
 
 func (r *Repository) ListEnrollmentByCourseID(courseID uint32) (res []entity.Enrollment, err error) {
 	castCourseID := strconv.Itoa(int(courseID))
-	req, err := http.NewRequest("GET", r.BaseURL+"/api/v1/courses/"+castCourseID+"/enrollments", nil)
+	// Check User already setting Canvas configuration
+	exists, url, token, err := r.Setting.ExistsCanvasConfig()
+	if err != nil {
+		return nil, err
+	}
+	// if not exist canvas configuration in db
+	if !exists {
+		return nil, inerr.ErrNoCanvasConfig
+	}
+	req, err := http.NewRequest("GET", url+"/api/v1/courses/"+castCourseID+"/enrollments", nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set(
-		"Authorization", "Bearer "+r.AccessToken,
+		"Authorization", "Bearer "+token,
 	)
 	resp, err := r.Client.Do(req)
 	if err != nil {

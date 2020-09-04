@@ -2,13 +2,9 @@ package usecase
 
 import (
 	"context"
-	"net"
-	"net/http"
 	"sync"
 	"testing"
-	"time"
 
-	"github.com/abmid/icanvas-analytics/pkg/canvas/course/repository"
 	mock_course "github.com/abmid/icanvas-analytics/pkg/canvas/course/repository/mock"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 
@@ -51,21 +47,6 @@ func SetupTest(ctrl *gomock.Controller) *mock_course.MockCourseRepository {
 	mockRepoCourse.EXPECT().Courses(uint32(1), uint32(6)).Return(ListCoursePage6, nil).AnyTimes()
 
 	return mockRepoCourse
-}
-
-func RealRepository() *repository.APIRepository {
-	transport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   0,
-			KeepAlive: 0,
-		}).Dial,
-		TLSHandshakeTimeout: 60 * time.Second,
-	}
-
-	client := http.Client{Transport: transport}
-	repo := repository.NewRepositoryAPI(&client, "https://lms.umm.ac.id/", "2Q8LJIJs7gCo8XsftFOtq53UT3cUlBIHsTQS7WAi6Le0TTjT2sL7bNtkm5ERT7cb")
-	return repo
 }
 
 func TestListUserInCourse(t *testing.T) {

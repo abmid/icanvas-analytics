@@ -9,6 +9,8 @@ import (
 
 	mock_canvas "github.com/abmid/icanvas-analytics/pkg/canvas/course/repository/mock/canvas"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
+	mock_setting "github.com/abmid/icanvas-analytics/pkg/setting/usecase/mock"
+	"github.com/golang/mock/gomock"
 
 	"github.com/gin-gonic/gin"
 	"gotest.tools/assert"
@@ -16,8 +18,13 @@ import (
 
 func TestCourses(t *testing.T) {
 	srv := serverMock()
+	ctrl := gomock.NewController(t)
 	defer srv.Close()
-	CourseRepo := NewRepositoryAPI(http.DefaultClient, srv.URL, "my-secret-token")
+	// Mock Setting UC
+	settingUC := mock_setting.NewMockSettingUseCase(ctrl)
+	settingUC.EXPECT().ExistsCanvasConfig().Return(true, srv.URL, "my-secret-token", nil)
+
+	CourseRepo := NewRepositoryAPI(http.DefaultClient, settingUC)
 	res, err := CourseRepo.Courses(1, 1)
 	if err != nil {
 		t.Log(err)
@@ -28,8 +35,13 @@ func TestCourses(t *testing.T) {
 
 func TestListUserInCourse(t *testing.T) {
 	srv := serverMock()
+	ctrl := gomock.NewController(t)
 	defer srv.Close()
-	CourseRepo := NewRepositoryAPI(http.DefaultClient, srv.URL, "my-secret-token")
+	// Mock Setting UC
+	settingUC := mock_setting.NewMockSettingUseCase(ctrl)
+	settingUC.EXPECT().ExistsCanvasConfig().Return(true, srv.URL, "my-secret-token", nil)
+
+	CourseRepo := NewRepositoryAPI(http.DefaultClient, settingUC)
 	res, err := CourseRepo.ListUserInCourse(1, "TeacherEnrollment")
 	t.Log(res)
 	assert.NilError(t, err, "Have Error Get List User")

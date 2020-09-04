@@ -13,32 +13,41 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/abmid/icanvas-analytics/internal/inerr"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
+	"github.com/abmid/icanvas-analytics/pkg/setting/usecase"
 )
 
 type APIRepository struct {
-	Client      *http.Client
-	BaseURL     string
-	AccessToken string
+	Client  *http.Client
+	Setting usecase.SettingUseCase
 }
 
-func NewRepositoryAPI(client *http.Client, baseUrl, accessToken string) *APIRepository {
+func NewRepositoryAPI(client *http.Client, settingUC usecase.SettingUseCase) *APIRepository {
 	return &APIRepository{
-		Client:      client,
-		BaseURL:     baseUrl,
-		AccessToken: accessToken,
+		Client:  client,
+		Setting: settingUC,
 	}
 }
 
 func (r *APIRepository) Courses(accountId, page uint32) (res []entity.Course, err error) {
 	castPage := strconv.Itoa(int(page))
 	castAccountID := strconv.Itoa(int(accountId))
-	req, err := http.NewRequest("GET", r.BaseURL+"/api/v1/accounts/"+castAccountID+"/courses?per_page=50&page="+castPage, nil)
+	// Check User already setting Canvas configuration
+	exists, url, token, err := r.Setting.ExistsCanvasConfig()
+	if err != nil {
+		return nil, err
+	}
+	// if not exist canvas configuration in db
+	if !exists {
+		return nil, inerr.ErrNoCanvasConfig
+	}
+	req, err := http.NewRequest("GET", url+"/api/v1/accounts/"+castAccountID+"/courses?per_page=50&page="+castPage, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add(
-		"Authorization", "Bearer "+r.AccessToken,
+		"Authorization", "Bearer "+token,
 	)
 	resp, err := r.Client.Do(req)
 	if err != nil {
@@ -62,12 +71,21 @@ func (r *APIRepository) Courses(accountId, page uint32) (res []entity.Course, er
  */
 func (r *APIRepository) ListUserInCourse(courseID uint32, enrollmentRole string) (res []entity.User, err error) {
 	castCourseID := strconv.Itoa(int(courseID))
-	req, err := http.NewRequest("GET", r.BaseURL+"/api/v1/courses/"+castCourseID+"/users?enrollment_role="+enrollmentRole, nil)
+	// Check User already setting Canvas configuration
+	exists, url, token, err := r.Setting.ExistsCanvasConfig()
+	if err != nil {
+		return nil, err
+	}
+	// if not exist canvas configuration in db
+	if !exists {
+		return nil, inerr.ErrNoCanvasConfig
+	}
+	req, err := http.NewRequest("GET", url+"/api/v1/courses/"+castCourseID+"/users?enrollment_role="+enrollmentRole, nil)
 	if err != nil {
 		return res, err
 	}
 	req.Header.Add(
-		"Authorization", "Bearer "+r.AccessToken,
+		"Authorization", "Bearer "+token,
 	)
 	resp, err := r.Client.Do(req)
 	if err != nil {

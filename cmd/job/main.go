@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/abmid/icanvas-analytics/pkg/analyticsjob/delivery/job"
-
+	setting_handler "github.com/abmid/icanvas-analytics/pkg/setting/delivery/http"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
 	"github.com/robfig/cron/v3"
@@ -49,7 +49,9 @@ func CronSet() {
 	c := cron.New(
 		cron.WithLogger(
 			cron.VerbosePrintfLogger(log.New(os.Stdout, "cron: ", log.LstdFlags))))
-	job.RunScheduling(c, db, viper.GetString("canvas.url"), viper.GetString("canvas.access_token"))
+
+	settingUC := setting_handler.SetupUseCase(db)
+	job.RunScheduling(c, db, settingUC)
 	c.Run()
 }
 

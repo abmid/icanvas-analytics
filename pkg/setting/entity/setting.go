@@ -10,10 +10,10 @@ package entity
 import "database/sql"
 
 type Setting struct {
-	ID        uint32 `query:"id"`
-	Name      string `query:"name"`
-	Category  string `query:"category"`
-	Value     string `query:"value"`
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID        uint32       `query:"id" json:"id"`
+	Name      string       `query:"name" json:"name"`
+	Category  string       `query:"category" json:"category"`
+	Value     string       `query:"value" json:"value"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
 }

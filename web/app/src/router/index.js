@@ -12,8 +12,9 @@ import AuthLogin from "@/views/auth/Login.vue"
 import AuthRegister from "@/views/auth/Register.vue"
 
 const DashboardHome = () => import("@/views/dashboard/home/Home.vue")
-const DashboardReportCourse = () => import("@/views/dashboard/reports/Course.vue")
-const DashboardSetting = () => import("@/views/dashboard/settings/Canvas")
+
+import reportCourse from './reports/course' 
+import setting from "./settings/setting"
 
 Vue.use(VueRouter)
 
@@ -45,24 +46,8 @@ Vue.use(VueRouter)
       title : "Home"
     }
   },
-  {
-    path: '/report/course',
-    name: 'dashboard.report.course',
-    component: DashboardReportCourse,
-    meta : {
-      requiredAuth : true,
-      title : "Course Reports"
-    }
-  },
-  {
-    path: '/setting',
-    name: 'dashboard.setting',
-    component: DashboardSetting,
-    meta : {
-      requiredAuth: true,
-      title: "Setting"
-    }
-  }  
+  ...reportCourse,
+  ...setting
 ]
 
 const router = new VueRouter({
