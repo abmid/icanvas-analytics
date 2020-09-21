@@ -60,7 +60,7 @@ func TestFindByFilter(t *testing.T) {
 			"id", "name", "category", "value", "created_at", "updated_at",
 		}).AddRow(1, "name", "category", "value", time.Now(), time.Now())
 
-		mock.ExpectQuery("SELECT FROM").WithArgs("Test").WillReturnRows(rows)
+		mock.ExpectQuery("SELECT").WithArgs("Test").WillReturnRows(rows)
 
 		repo := NewRepositoryPG(db)
 		filter := entity.Setting{

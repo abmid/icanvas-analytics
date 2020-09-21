@@ -8,17 +8,23 @@
 package usecase
 
 import (
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/account/repository"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 )
 
 type accountUC struct {
 	AccountRepo repository.AccountRepository
+	Log         *logger.LoggerWrap
 }
 
 func NewUseCase(accountRepo repository.AccountRepository) *accountUC {
+
+	logger := logger.New()
+
 	return &accountUC{
 		AccountRepo: accountRepo,
+		Log:         logger,
 	}
 }
 

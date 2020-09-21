@@ -10,6 +10,7 @@ package usecase
 import (
 	"context"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/report/enrollment/repository"
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
@@ -17,11 +18,16 @@ import (
 
 type reportEnrollUseCase struct {
 	RepoReportEnroll repository.EnrollmentRepositoryPG
+	Log              *logger.LoggerWrap
 }
 
 func NewReportEnrollUseCase(repoReportEnroll repository.EnrollmentRepositoryPG) *reportEnrollUseCase {
+
+	logger := logger.New()
+
 	return &reportEnrollUseCase{
 		RepoReportEnroll: repoReportEnroll,
+		Log:              logger,
 	}
 }
 
@@ -67,11 +73,13 @@ func (useCase *reportEnrollUseCase) CreateOrUpdateByFilter(ctx context.Context, 
 	if findReportEnroll.ID == 0 {
 		err := useCase.RepoReportEnroll.Create(ctx, reportEnroll)
 		if err != nil {
+			useCase.Log.Error(err)
 			return err
 		}
 	} else {
 		err := useCase.RepoReportEnroll.Update(ctx, reportEnroll)
 		if err != nil {
+			useCase.Log.Error(err)
 			return err
 		}
 	}

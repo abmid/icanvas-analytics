@@ -4,19 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
-	"github.com/sirupsen/logrus"
 	"gotest.tools/assert"
 )
 
@@ -26,30 +20,6 @@ type AnyTime struct{}
 func (a AnyTime) Match(v driver.Value) bool {
 	_, ok := v.(time.Time)
 	return ok
-}
-
-func RealSetup() *sql.DB {
-	parse, err := pgx.ParseURI("postgres://abdulhamid:@localhost:5432/canvas_analytics_go?sslmode=disable")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
-		os.Exit(1)
-	}
-	db := stdlib.OpenDB(parse)
-	return db
-}
-
-func TestCreateReal(t *testing.T) {
-	assigment := entity.ReportAssigment{
-		CourseReportID: 2,
-		Name:           "Name Assigment",
-		CreatedAt:      sql.NullTime{Time: time.Now()},
-		UpdatedAt:      sql.NullTime{Time: time.Now()},
-	}
-	repo := NewAssigmentPG(RealSetup())
-	err := repo.Create(context.TODO(), &assigment)
-	logrus.Error(err)
-	t.Log(assigment)
-	t.Fatalf("P")
 }
 
 func TestCreate(t *testing.T) {
@@ -168,7 +138,7 @@ func TestCreateOrUpdateByCourseReportID(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id"}).AddRow(0)
 		mock.ExpectQuery("SELECT id").WithArgs(uint32(1)).WillReturnRows(rows)
 		mock.ExpectQuery("INSERT INTO "+DBTABLE).
-			WithArgs(assigment.CourseReportID, assigment.AssigmentID, assigment.Name, assigment.CreatedAt, assigment.UpdatedAt).
+			WithArgs(assigment.CourseReportID, assigment.AssigmentID, assigment.Name, AnyTime{}, AnyTime{}).
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(2))
 
 		repo := NewAssigmentPG(db)
@@ -210,8 +180,6 @@ func TestFindByFilter(t *testing.T) {
 		mock.ExpectQuery("SELECT").WithArgs(filter.ID, filter.AssigmentID).WillReturnRows(rows)
 		repo := NewAssigmentPG(db)
 		res, err := repo.FindFirstByFilter(context.Background(), filter)
-		t.Log(err)
-		t.Log(res)
 		assert.NilError(t, err)
 		assert.Equal(t, assigments[0].ID, res.ID)
 	})
@@ -228,8 +196,6 @@ func TestFindByFilter(t *testing.T) {
 		mock.ExpectQuery("SELECT").WithArgs(filter.ID, filter.AssigmentID).WillReturnRows(rows)
 		repo := NewAssigmentPG(db)
 		res, err := repo.FindFirstByFilter(context.Background(), filter)
-		t.Log(err)
-		t.Log(res)
 		assert.NilError(t, err)
 		assert.Equal(t, res.ID, uint32(0))
 	})
@@ -266,15 +232,4 @@ func TestFindFilter(t *testing.T) {
 	assert.NilError(t, err, "Error Read")
 	assert.Equal(t, len(assigments), len(results), "Not same len result")
 	assert.Equal(t, assigments[0].ID, results[0].ID, "Not same result")
-}
-
-func TestT(t *testing.T) {
-	pg := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	query := pg.Select("id, nama").From("Test")
-	query = query.Where(sq.Eq{"ID": 1})
-	query = query.Where(sq.Eq{"nama": "sutinem"})
-	query = query.Where(sq.Eq{"bb": 1})
-	a, _, _ := query.ToSql()
-	t.Log(a)
-	t.Fatalf("P")
 }

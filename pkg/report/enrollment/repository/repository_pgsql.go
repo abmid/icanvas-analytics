@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	sq "github.com/Masterminds/squirrel"
@@ -20,6 +21,7 @@ import (
 type pgRepository struct {
 	con *sql.DB
 	sq  sq.StatementBuilderType
+	Log *logger.LoggerWrap
 }
 
 var (
@@ -28,13 +30,18 @@ var (
 )
 
 func NewEnrollmentPG(con *sql.DB) *pgRepository {
+
+	logger := logger.New()
+
 	return &pgRepository{
 		con: con,
 		sq:  sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
+		Log: logger,
 	}
 }
 
 func (r *pgRepository) Create(ctx context.Context, reportEnroll *entity.ReportEnrollment) error {
+
 	query := r.sq.Insert(DBTABLE).Columns(
 		"course_report_id",
 		"enrollment_id",
@@ -64,14 +71,17 @@ func (r *pgRepository) Create(ctx context.Context, reportEnroll *entity.ReportEn
 		time.Now(),
 		time.Now(),
 	).Suffix("RETURNING \"id\"").RunWith(r.con)
+
 	err := query.QueryRow().Scan(&reportEnroll.ID)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil
 }
 
 func (r *pgRepository) Read(ctx context.Context) ([]entity.ReportEnrollment, error) {
+
 	results := []entity.ReportEnrollment{}
 	query := r.sq.Select(
 		"id",
@@ -95,9 +105,11 @@ func (r *pgRepository) Read(ctx context.Context) ([]entity.ReportEnrollment, err
 		if err.Error() == sql.ErrNoRows.Error() {
 			return nil, nil
 		}
+		r.Log.Error(err)
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		result := entity.ReportEnrollment{}
 		err = rows.Scan(
@@ -117,6 +129,7 @@ func (r *pgRepository) Read(ctx context.Context) ([]entity.ReportEnrollment, err
 			&result.UpdatedAt,
 		)
 		if err != nil {
+			r.Log.Error(err)
 			return nil, err
 		}
 
@@ -127,6 +140,7 @@ func (r *pgRepository) Read(ctx context.Context) ([]entity.ReportEnrollment, err
 }
 
 func (r *pgRepository) Update(ctx context.Context, reportEnroll *entity.ReportEnrollment) error {
+
 	query := r.sq.Update(DBTABLE).
 		Set("course_report_id", reportEnroll.CourseReportID).
 		Set("enrollment_id", reportEnroll.EnrollmentID).
@@ -141,23 +155,29 @@ func (r *pgRepository) Update(ctx context.Context, reportEnroll *entity.ReportEn
 		Set("final_grade", reportEnroll.FinalGrade).
 		Set("updated_at", time.Now()).
 		Where(sq.Eq{"id": reportEnroll.ID}).Suffix("RETURNING \"id\"").RunWith(r.con)
+
 	err := query.QueryRow().Scan(&reportEnroll.ID)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil
 }
 
 func (r *pgRepository) Delete(ctx context.Context, reportEnrollID uint32) error {
+
 	query := r.sq.Delete(DBTABLE).Where(sq.Eq{"id": reportEnrollID}).RunWith(r.con)
+
 	_, err := query.Exec()
 	if err != nil {
+		r.Log.Error(err)
 		return nil
 	}
 	return nil
 }
 
 func (r *pgRepository) FindFirstByFilter(ctx context.Context, filter entity.ReportEnrollment) (res entity.ReportEnrollment, err error) {
+
 	nullValue := entity.ReportEnrollment{}
 	query := r.sq.Select(
 		"id",
@@ -207,6 +227,7 @@ func (r *pgRepository) FindFirstByFilter(ctx context.Context, filter entity.Repo
 	)
 
 	if err != nil && err != sql.ErrNoRows {
+		r.Log.Error(err)
 		return res, err
 	}
 
@@ -256,9 +277,11 @@ func (r *pgRepository) FindFilter(ctx context.Context, filter entity.ReportEnrol
 		if err.Error() == sql.ErrNoRows.Error() {
 			return nil, nil
 		}
+		r.Log.Error(err)
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		result := entity.ReportEnrollment{}
 		err = rows.Scan(
@@ -278,6 +301,7 @@ func (r *pgRepository) FindFilter(ctx context.Context, filter entity.ReportEnrol
 			&result.UpdatedAt,
 		)
 		if err != nil {
+			r.Log.Error(err)
 			return nil, err
 		}
 

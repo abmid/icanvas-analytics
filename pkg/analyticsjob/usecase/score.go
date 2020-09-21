@@ -13,10 +13,8 @@ import (
 	"sync"
 
 	"github.com/abmid/icanvas-analytics/pkg/analyticsjob/entity"
-	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
-
-	"github.com/sirupsen/logrus"
+	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 )
 
 /*
@@ -59,6 +57,7 @@ func (AUC *AnalyticJobUseCase) CheckScoreGrade(reportEnrollments []canvas.Enroll
 	return studentcount, finishGrading, averadeGrading
 }
 
+// dispatchWorkerCreateReportEnrollment a function running go routine such as many worker database. This function wait value from upstream via inbound channel
 func (AUC *AnalyticJobUseCase) dispatchWorkerCreateReportEnrollment(ctx context.Context, wg *sync.WaitGroup, in <-chan canvas.Enrollment, reportCourseID uint32) {
 	for i := 0; i < WORKER_DATABASE; i++ {
 		go func(ctx context.Context, wg *sync.WaitGroup, in <-chan canvas.Enrollment, reportCourseID uint32) {
@@ -98,17 +97,21 @@ func (AUC *AnalyticJobUseCase) dispatchWorkerCreateReportEnrollment(ctx context.
 	}
 }
 
-/*
-This method for store data into a database
-*/
+// createReportEnrollment a function to create report enrollment, in this function will have 2 operation after get list diss.
+// 1. This function will be send value list enrollment to outbound channel immediately
+// 2. And then process store report enrollment
 func (AUC *AnalyticJobUseCase) createReportEnrollment(wg *sync.WaitGroup, out chan<- []canvas.Enrollment, ctx context.Context, reportCourseID, courseID uint32) {
+
 	enrollments, err := AUC.listEnrollment(courseID)
 	if err != nil {
-		logrus.Error(err)
+		AUC.Log.Error(err)
 	}
+	// Send out channel
 	out <- enrollments
 	ch := make(chan canvas.Enrollment)
+	// Wait inbound channel
 	go AUC.dispatchWorkerCreateReportEnrollment(ctx, wg, ch, reportCourseID)
+	// send to channel
 	for _, enrollment := range enrollments {
 		fmt.Println(enrollment)
 		wg.Add(1)
@@ -117,9 +120,7 @@ func (AUC *AnalyticJobUseCase) createReportEnrollment(wg *sync.WaitGroup, out ch
 	wg.Done()
 }
 
-/*
-This method for get list Report Enrollment and a part of AnalyzeEnrollment
-*/
+// listReportEnrollment This method for get list Report Enrollment and a part of AnalyzeEnrollment
 func (AUC *AnalyticJobUseCase) listReportEnrollment(ctx context.Context, filter report.ReportEnrollment) (res []report.ReportEnrollment, err error) {
 	countTry := 0
 	for {
@@ -142,7 +143,7 @@ func (AUC *AnalyticJobUseCase) AnalyzeReportEnrollment(ctx context.Context, filt
 	// TODO : Fix This
 	_, err := AUC.listReportEnrollment(ctx, filter)
 	if err != nil {
-		logrus.Error(err)
+		AUC.Log.Error(err)
 		panic(err)
 	}
 	// TODO : FIx This

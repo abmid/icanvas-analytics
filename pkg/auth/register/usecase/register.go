@@ -9,23 +9,30 @@ package usecase
 import (
 	"errors"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/user/entity"
 	user_uc "github.com/abmid/icanvas-analytics/pkg/user/usecase"
 )
 
 type registerUC struct {
 	UserUC user_uc.UserUseCase
+	Log    *logger.LoggerWrap
 }
 
 func New(UserUC user_uc.UserUseCase) *registerUC {
+
+	logger := logger.New()
+
 	return &registerUC{
 		UserUC: UserUC,
+		Log:    logger,
 	}
 }
 
 func (UC *registerUC) Register(user *entity.User) error {
 	users, err := UC.UserUC.All()
 	if err != nil {
+		UC.Log.Error(err)
 		return err
 	}
 	if len(users) != 0 {
@@ -44,6 +51,7 @@ func (UC *registerUC) Register(user *entity.User) error {
 func (UC *registerUC) RegisterCheck() (bool, error) {
 	users, err := UC.UserUC.All()
 	if err != nil {
+		UC.Log.Error(err)
 		return false, err
 	}
 	if len(users) > 0 {

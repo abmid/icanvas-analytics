@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	sq "github.com/Masterminds/squirrel"
@@ -25,16 +26,21 @@ var (
 type pgRepository struct {
 	con *sql.DB
 	sq  sq.StatementBuilderType
+	Log *logger.LoggerWrap
 }
 
 func NewUserPG(con *sql.DB) *pgRepository {
+
+	logger := logger.New()
 	return &pgRepository{
 		con: con,
 		sq:  sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
+		Log: logger,
 	}
 }
 
 func (r *pgRepository) Create(ctx context.Context, reportUser *entity.ReportUser) error {
+
 	query := r.sq.Insert(DBTABLE).
 		Columns(
 			"report_course_id",
@@ -55,6 +61,7 @@ func (r *pgRepository) Create(ctx context.Context, reportUser *entity.ReportUser
 	err := query.QueryRow().Scan(&reportUser.ID)
 
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 
@@ -72,6 +79,7 @@ func (r *pgRepository) Update(ctx context.Context, reportUser *entity.ReportUser
 
 	err := query.QueryRow().Scan(&reportUser.ID)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil
@@ -88,6 +96,7 @@ func (r *pgRepository) CreateOrUpdateByCourseReportID(ctx context.Context, repor
 	if reportUser.ID != 0 {
 		err := r.Update(ctx, reportUser)
 		if err != nil {
+			r.Log.Error(err)
 			return err
 		}
 		return nil
@@ -95,6 +104,7 @@ func (r *pgRepository) CreateOrUpdateByCourseReportID(ctx context.Context, repor
 	// If Not exist
 	err = r.Create(ctx, reportUser)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil

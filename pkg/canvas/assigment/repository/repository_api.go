@@ -14,6 +14,7 @@ import (
 	"strconv"
 
 	"github.com/abmid/icanvas-analytics/internal/inerr"
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	"github.com/abmid/icanvas-analytics/pkg/setting/usecase"
 )
@@ -21,12 +22,17 @@ import (
 type Repository struct {
 	Client  *http.Client
 	Setting usecase.SettingUseCase
+	Log     *logger.LoggerWrap
 }
 
 func NewRepositoryAPI(client *http.Client, settingUC usecase.SettingUseCase) *Repository {
+
+	logger := logger.New()
+
 	return &Repository{
 		Client:  client,
 		Setting: settingUC,
+		Log:     logger,
 	}
 }
 
@@ -43,6 +49,7 @@ func (r *Repository) ListAssigmentByCourseID(CourseID uint32) (res []entity.Assi
 	}
 	req, err := http.NewRequest("GET", url+"/api/v1/courses/"+caseCourseID+"/assignments", nil)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	req.Header.Set(
@@ -50,15 +57,18 @@ func (r *Repository) ListAssigmentByCourseID(CourseID uint32) (res []entity.Assi
 	)
 	resp, err := r.Client.Do(req)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	return res, nil

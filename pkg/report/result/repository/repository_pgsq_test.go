@@ -2,28 +2,13 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
 	"gotest.tools/assert"
 )
-
-func RealSetup() *sql.DB {
-	parse, err := pgx.ParseURI("postgres://abdulhamid:@localhost:5432/canvas_analytics_dev?sslmode=disable")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
-		os.Exit(1)
-	}
-	db := stdlib.OpenDB(parse)
-	return db
-}
 
 func TestCreate(t *testing.T) {
 	db, mock, err := sqlmock.New()

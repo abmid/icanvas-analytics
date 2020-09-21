@@ -5,17 +5,17 @@ import (
 	"sync"
 	"testing"
 
+	canvas_assigment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/usecase/mock"
+	canvas_course_uc "github.com/abmid/icanvas-analytics/pkg/canvas/course/usecase/mock"
+	canvas_discussion_uc "github.com/abmid/icanvas-analytics/pkg/canvas/discussion/usecase/mock"
+	canvas_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/usecase/mock"
+	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	report_assigment_uc "github.com/abmid/icanvas-analytics/pkg/report/assigment/usecase/mock"
 	report_course_uc "github.com/abmid/icanvas-analytics/pkg/report/course/usecase/mock"
 	report_discussion_uc "github.com/abmid/icanvas-analytics/pkg/report/discussion/usecase/mock"
 	report_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/report/enrollment/usecase/mock"
 	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 	report_result_uc "github.com/abmid/icanvas-analytics/pkg/report/result/usecase/mock"
-	canvas_assigment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/usecase/mock"
-	canvas_course_uc "github.com/abmid/icanvas-analytics/pkg/canvas/course/usecase/mock"
-	canvas_discussion_uc "github.com/abmid/icanvas-analytics/pkg/canvas/discussion/usecase/mock"
-	canvas_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/usecase/mock"
-	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 
 	"github.com/golang/mock/gomock"
 	"gotest.tools/assert"
@@ -60,44 +60,6 @@ func TestListEnrollment(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, len(res), len(ListEnrollment))
 }
-
-// func TestCheckScoreGrade(t *testing.T) {
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
-// 	// TODO Mock Canvas Assigment UseCase
-// 	canvasAssigmentUC := canvas_assigment_uc.NewMockAssigmentUseCase(ctrl)
-// 	// TODO Mock Canvas Course UseCase
-// 	canvasCourseUC := canvas_course_uc.NewMockCourseUseCase(ctrl)
-// 	// TODO Mock Canvas Discussion UseCase
-// 	canvasDiscussionUC := canvas_discussion_uc.NewMockDiscussionUseCase(ctrl)
-// 	// TODO Mock Canvas Enrollment UseCase
-// 	canvasEnrollmentUC := canvas_enrollment_uc.NewMockEnrollmentUseCase(ctrl)
-
-// 	// TODO Mock Report Assigment Usecase
-// 	reportAssigmentUC := report_assigment_uc.NewMockReportAssigmentUseCase(ctrl)
-// 	// TODO Mock Report Course UseCase
-// 	reportCourseUC := report_course_uc.NewMockReportCourseUseCase(ctrl)
-// 	// TODO Mock Report Discussion UseCase
-// 	reportDiscussionUC := report_discussion_uc.NewMockReportDiscussionUseCase(ctrl)
-// 	// TODO Mock Report Enrollment UseCase
-// 	reportEnrollmentUC := report_enrollment_uc.NewMockReportEnrollmentUseCase(ctrl)
-// 	AUC := NewAnalyticJobUseCase(canvasCourseUC, canvasAssigmentUC, canvasEnrollmentUC, canvasDiscussionUC, reportAssigmentUC, reportCourseUC, reportDiscussionUC, reportEnrollmentUC)
-
-// 	listReportEnrollment := []report.ReportEnrollment{
-// 		{ID: 1, CourseReportID: 1, UserID: 1, CurrentGrade: 32, CurrentScore: 13, FinalGrade: 11.2, FinalScore: 12.2, Role: "StudentEnrollment"},
-// 		{ID: 1, CourseReportID: 1, UserID: 2, Role: "StudentEnrollment"},
-// 	}
-// 	studentCount, finishGrading, averageGrading := AUC.CheckScoreGrade(listReportEnrollment)
-// 	assert.Equal(t, studentCount, uint32(len(listReportEnrollment)), "Count Student Not Same")
-// 	assert.Equal(t, finishGrading, uint32(1), "Count grade not same")
-// 	assert.Equal(t, averageGrading, float32(50), "Final Score not same")
-// }
-
-// func BenchmarkCheckScoreGrade(b *testing.B) {
-// 	for i := 0; i < b.N; i++ {
-// 		TestCheckScoreGrade(&testing.T{})
-// 	}
-// }
 
 func TestDispatchWorkerCreateReportEnrollment(t *testing.T) {
 	ctrl := gomock.NewController(t)

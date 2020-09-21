@@ -8,17 +8,23 @@
 package usecase
 
 import (
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/assigment/repository"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 )
 
 type assigmentUseCase struct {
 	AssigmentRepo repository.AssigmentRepository
+	Log           *logger.LoggerWrap
 }
 
 func NewAssigmentUseCase(assigmentRepo repository.AssigmentRepository) *assigmentUseCase {
+
+	logger := logger.New()
+
 	return &assigmentUseCase{
 		AssigmentRepo: assigmentRepo,
+		Log:           logger,
 	}
 }
 

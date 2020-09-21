@@ -12,10 +12,8 @@ import (
 	"sync"
 
 	"github.com/abmid/icanvas-analytics/pkg/analyticsjob/entity"
-	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
-
-	"github.com/sirupsen/logrus"
+	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 )
 
 var (
@@ -23,12 +21,7 @@ var (
 	WORKER_DATABASE = 10
 )
 
-/*
-This method to get List Assingment From Repository Canvas
-@param courseID
-@return []entity.Assigment
-@return err
-*/
+// listAssigment This method to get List Assingment From Repository Canvas
 func (AUC *AnalyticJobUseCase) listAssigment(courseID uint32) (res []canvas.Assigment, err error) {
 	countTry := 0
 	for {
@@ -51,8 +44,10 @@ func (AUC *AnalyticJobUseCase) listAssigment(courseID uint32) (res []canvas.Assi
 // TODO : 2. Init Worker Sebelum perulangan
 // TODO : 3. Didalam Worker kirim data assigment ke channel
 // ? Worker akan bekerja setelah mendapat data kiriman dari looping
+// dispatchWorkerCreateReportAssigment a function running go routine such as many worker database. This function wait value from upstream via inbound channel
 func (AUC *AnalyticJobUseCase) dispatchWorkerCreateReportAssigment(ctx context.Context, wg *sync.WaitGroup, in <-chan canvas.Assigment, reportCourseID uint32) {
 	for i := 0; i < WORKER_DATABASE; i++ {
+		// Run go routine of WORKER_DATABASE, and all goroute wait value from upstream via inbound channel
 		go func(ctx context.Context, wg *sync.WaitGroup, in <-chan canvas.Assigment, reportCourseID uint32) {
 			for assigment := range in {
 				reportAss := report.ReportAssigment{
@@ -63,8 +58,10 @@ func (AUC *AnalyticJobUseCase) dispatchWorkerCreateReportAssigment(ctx context.C
 				filter := reportAss
 				countTry := 0
 				for {
+					// Store report assigment
 					err := AUC.ReportAssigment.CreateOrUpdateByFilter(ctx, filter, &reportAss)
 					if err != nil {
+						// will be try 3 times if failed
 						if countTry > MAX_RETRY {
 							break
 						}
@@ -79,19 +76,21 @@ func (AUC *AnalyticJobUseCase) dispatchWorkerCreateReportAssigment(ctx context.C
 	}
 }
 
-/*
-This method for store list assigment into database
-*/
+// createReportAssigment a function to create report assigment, in this function will have 2 operation after get list assigment.
+// 1. This function will be send value listAssigment to outbound channel immediately
+// 2. And then process store report assigment
 func (AUC *AnalyticJobUseCase) createReportAssigment(wg *sync.WaitGroup, out chan<- []canvas.Assigment, ctx context.Context, reportCourseID, courseID uint32) {
 	assigments, err := AUC.listAssigment(courseID)
 	if err != nil {
-		logrus.Error(err)
+		AUC.Log.Error(err)
 	}
 	// TODO : Send assigments to out channel
+	// Operation 1
 	out <- assigments
 	ch := make(chan canvas.Assigment)
-	// Fan-in, fan-out pattern
+	// Running worker and wait value from upstream inbound channel
 	go AUC.dispatchWorkerCreateReportAssigment(ctx, wg, ch, reportCourseID)
+	// Send assigment to channel
 	for _, assigment := range assigments {
 		wg.Add(1)
 		ch <- assigment
@@ -100,9 +99,7 @@ func (AUC *AnalyticJobUseCase) createReportAssigment(wg *sync.WaitGroup, out cha
 	wg.Done()
 }
 
-/*
-Get Report Assigment with handle Retry, this method a part of AnalyzeReportAssigment
-*/
+// listReportAssigment get list report assigment with try 3 time if failed
 func (AUC *AnalyticJobUseCase) listReportAssigment(ctx context.Context, filter report.ReportAssigment) (res []report.ReportAssigment, err error) {
 	countTry := 0
 	for {
@@ -124,8 +121,7 @@ func (AUC *AnalyticJobUseCase) AnalyzeReportAssigment(ctx context.Context, filte
 
 	reportAssigments, err := AUC.listReportAssigment(ctx, filter)
 	if err != nil {
-		logrus.Error(err)
-		panic(err)
+		AUC.Log.Error(err)
 	}
 	score := entity.ScoreAssigment{
 		CourseReportID: filter.CourseReportID,

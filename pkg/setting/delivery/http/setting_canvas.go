@@ -25,6 +25,7 @@ func (SH *SettingHandler) CreateOrUpdateCanvas() echo.HandlerFunc {
 		formData := new(FormDataCanvas)
 		// Bind First
 		if err := c.Bind(formData); err != nil {
+			SH.Log.Error(err)
 			return c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		}
 		// Validate

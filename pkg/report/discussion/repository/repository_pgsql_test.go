@@ -4,18 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
-	"github.com/sirupsen/logrus"
 	"gotest.tools/assert"
 )
 
@@ -25,31 +20,6 @@ type AnyTime struct{}
 func (a AnyTime) Match(v driver.Value) bool {
 	_, ok := v.(time.Time)
 	return ok
-}
-
-func RealSetup() *sql.DB {
-	parse, err := pgx.ParseURI("postgres://abdulhamid:@localhost:5432/canvas_analytics_go?sslmode=disable")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
-		os.Exit(1)
-	}
-	db := stdlib.OpenDB(parse)
-	return db
-}
-
-func TestCreateReal(t *testing.T) {
-	repo := NewDiscussionPG(RealSetup())
-	reportDiss := entity.ReportDiscussion{
-		CourseReportID: 1,
-		DiscussionID:   1,
-		Title:          "Title Diss",
-		CreatedAt:      sql.NullTime{Time: time.Now()},
-		UpdatedAt:      sql.NullTime{Time: time.Now()},
-	}
-	err := repo.Create(context.TODO(), &reportDiss)
-	logrus.Error(err)
-	t.Log(reportDiss)
-	t.Fatalf("P")
 }
 
 func TestCreate(t *testing.T) {

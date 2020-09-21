@@ -3,18 +3,13 @@ package usecase
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"os"
 	"testing"
 	"time"
 
-	repository_real "github.com/abmid/icanvas-analytics/pkg/report/course/repository"
 	mock_assigment "github.com/abmid/icanvas-analytics/pkg/report/course/repository/mock"
 	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	"github.com/golang/mock/gomock"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
 	"gotest.tools/assert"
 )
 
@@ -154,27 +149,4 @@ func TestCreateOrUpdateCourseID(t *testing.T) {
 	err := useCase.CreateOrUpdateCourseID(context.Background(), &reportCourse)
 	assert.NilError(t, err, "Error Create")
 	assert.Equal(t, uint32(2), reportCourse.ID)
-}
-
-func RealSetup() *sql.DB {
-	parse, err := pgx.ParseURI("postgres://abdulhamid:@localhost:5432/canvas_analytics_dev?sslmode=disable")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
-		os.Exit(1)
-	}
-	db := stdlib.OpenDB(parse)
-	return db
-}
-
-func TestCreateOrUpdateCourseIDReal(t *testing.T) {
-	mockReportCourse := repository_real.NewCoursePG(RealSetup())
-	reportCourse := report.ReportCourse{
-		CourseID: 1,
-	}
-	useCase := NewReportCourseUseCase(mockReportCourse)
-	err := useCase.CreateOrUpdateCourseID(context.Background(), &reportCourse)
-	assert.NilError(t, err, "Error Create")
-	assert.Equal(t, uint32(2), reportCourse.ID)
-	t.Log(err)
-	t.Fatalf("P")
 }

@@ -12,12 +12,14 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/setting/entity"
 )
 
 type pgRepository struct {
 	con *sql.DB
 	sq  sq.StatementBuilderType
+	Log *logger.LoggerWrap
 }
 
 var (
@@ -25,13 +27,18 @@ var (
 )
 
 func NewRepositoryPG(db *sql.DB) *pgRepository {
+
+	logger := logger.New()
+
 	return &pgRepository{
 		con: db,
 		sq:  sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
+		Log: logger,
 	}
 }
 
 func (r *pgRepository) Create(setting *entity.Setting) error {
+
 	query := r.sq.Insert(DBNAME).Columns("name", "category", "value", "created_at", "updated_at").Values(
 		setting.Name,
 		setting.Category,
@@ -42,6 +49,7 @@ func (r *pgRepository) Create(setting *entity.Setting) error {
 
 	err := query.QueryRow().Scan(&setting.ID)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil
@@ -56,6 +64,7 @@ func (r *pgRepository) Update(id uint32, setting entity.Setting) error {
 
 	_, err := query.Exec()
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 
@@ -89,6 +98,7 @@ func (r *pgRepository) FindByFilter(filter entity.Setting) (res []entity.Setting
 		if err == sql.ErrNoRows {
 			return res, nil
 		}
+		r.Log.Error(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -103,6 +113,11 @@ func (r *pgRepository) FindByFilter(filter entity.Setting) (res []entity.Setting
 			&setting.CreatedAt,
 			&setting.UpdatedAt,
 		)
+
+		if err != nil {
+			r.Log.Error(err)
+			return nil, err
+		}
 
 		res = append(res, setting)
 	}

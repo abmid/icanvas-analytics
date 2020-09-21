@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	sq "github.com/Masterminds/squirrel"
@@ -20,6 +21,7 @@ import (
 type pgRepository struct {
 	con *sql.DB
 	sq  sq.StatementBuilderType
+	Log *logger.LoggerWrap
 }
 
 var (
@@ -28,13 +30,18 @@ var (
 )
 
 func NewResultPG(con *sql.DB) *pgRepository {
+
+	logger := logger.New()
+
 	return &pgRepository{
 		con: con,
 		sq:  sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
+		Log: logger,
 	}
 }
 
 func (r *pgRepository) Create(ctx context.Context, result *entity.ReportResult) error {
+
 	query := r.sq.Insert(DBTABLE).Columns(
 		"report_course_id",
 		"assigment_count",
@@ -54,14 +61,17 @@ func (r *pgRepository) Create(ctx context.Context, result *entity.ReportResult) 
 		time.Now(),
 		time.Now(),
 	).Suffix("RETURNING \"id\"").RunWith(r.con)
+
 	err := query.QueryRow().Scan(&result.ID)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil
 }
 
 func (r *pgRepository) Update(ctx context.Context, result *entity.ReportResult) error {
+
 	query := r.sq.Update(DBTABLE).
 		Set("report_course_id", result.ReportCourseID).
 		Set("assigment_count", result.AssigmentCount).
@@ -75,12 +85,14 @@ func (r *pgRepository) Update(ctx context.Context, result *entity.ReportResult) 
 
 	err := query.QueryRow().Scan(&result.ID)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil
 }
 
 func (r *pgRepository) CreateOrUpdateByCourseReportID(ctx context.Context, result *entity.ReportResult) error {
+
 	var findCourseAssigmentID uint32
 	query := r.sq.Select("id").
 		From(DBTABLE).
@@ -90,6 +102,7 @@ func (r *pgRepository) CreateOrUpdateByCourseReportID(ctx context.Context, resul
 
 	err := query.QueryRow().Scan(&findCourseAssigmentID)
 	if err != nil && err != sql.ErrNoRows {
+		r.Log.Error(err)
 		return err
 	}
 
@@ -97,12 +110,14 @@ func (r *pgRepository) CreateOrUpdateByCourseReportID(ctx context.Context, resul
 	if findCourseAssigmentID == 0 {
 		err = r.Create(ctx, result)
 		if err != nil {
+			r.Log.Error(err)
 			return err
 		}
 		return nil
 	}
 	err = r.Update(ctx, result)
 	if err != nil {
+		r.Log.Error(err)
 		return err
 	}
 	return nil

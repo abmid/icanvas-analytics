@@ -29,7 +29,7 @@ func TestAll(t *testing.T) {
 	NewHandler("/setting", g, "super-secret", uc)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/v1/setting/", nil)
+	req, _ := http.NewRequest("GET", "/v1/setting", nil)
 	req.Header.Set("content-type", echo.MIMEApplicationJSON)
 	cookieToken := http.Cookie{
 		Name:     "icanvas_token",

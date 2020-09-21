@@ -14,6 +14,7 @@ import (
 	"strconv"
 
 	"github.com/abmid/icanvas-analytics/internal/inerr"
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	"github.com/abmid/icanvas-analytics/pkg/setting/usecase"
 )
@@ -21,12 +22,17 @@ import (
 type APIRepository struct {
 	Client  *http.Client
 	Setting usecase.SettingUseCase
+	Log     *logger.LoggerWrap
 }
 
 func NewRepositoryAPI(client *http.Client, settingUC usecase.SettingUseCase) *APIRepository {
+
+	logger := logger.New()
+
 	return &APIRepository{
 		Client:  client,
 		Setting: settingUC,
+		Log:     logger,
 	}
 }
 
@@ -44,6 +50,7 @@ func (r *APIRepository) Courses(accountId, page uint32) (res []entity.Course, er
 	}
 	req, err := http.NewRequest("GET", url+"/api/v1/accounts/"+castAccountID+"/courses?per_page=50&page="+castPage, nil)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	req.Header.Add(
@@ -51,15 +58,18 @@ func (r *APIRepository) Courses(accountId, page uint32) (res []entity.Course, er
 	)
 	resp, err := r.Client.Do(req)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		r.Log.Error(err)
 		return res, err
 	}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 
@@ -82,6 +92,7 @@ func (r *APIRepository) ListUserInCourse(courseID uint32, enrollmentRole string)
 	}
 	req, err := http.NewRequest("GET", url+"/api/v1/courses/"+castCourseID+"/users?enrollment_role="+enrollmentRole, nil)
 	if err != nil {
+		r.Log.Error(err)
 		return res, err
 	}
 	req.Header.Add(
@@ -89,15 +100,18 @@ func (r *APIRepository) ListUserInCourse(courseID uint32, enrollmentRole string)
 	)
 	resp, err := r.Client.Do(req)
 	if err != nil {
+		r.Log.Error(err)
 		return res, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		r.Log.Error(err)
 		return res, err
 	}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
+		r.Log.Error(err)
 		return res, err
 	}
 	return res, nil

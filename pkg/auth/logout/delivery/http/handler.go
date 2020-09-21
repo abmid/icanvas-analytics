@@ -10,11 +10,14 @@ package http
 import (
 	"net/http"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/auth"
 	echo "github.com/labstack/echo/v4"
 )
 
-type LogoutHandler struct{}
+type LogoutHandler struct {
+	Log *logger.LoggerWrap
+}
 
 type ResponseError struct {
 	Message string `json:"message"`
@@ -28,6 +31,7 @@ func (LH *LogoutHandler) Logout() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		err := auth.WriteTokenCookie(c, "logout")
 		if err != nil {
+			LH.Log.Error(err)
 			return c.JSON(http.StatusConflict, ResponseError{Message: "Failed logout !"})
 		}
 
@@ -36,7 +40,12 @@ func (LH *LogoutHandler) Logout() echo.HandlerFunc {
 }
 
 func NewHandler(path string, g *echo.Group) {
-	handler := LogoutHandler{}
+
+	logger := logger.New()
+
+	handler := LogoutHandler{
+		Log: logger,
+	}
 
 	r := g.Group(path)
 	r.POST("/logout", handler.Logout())

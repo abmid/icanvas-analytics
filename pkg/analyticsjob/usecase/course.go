@@ -9,13 +9,13 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
-	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
+	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 )
 
+// listReportCourse @Deprecated
 func (AUC *AnalyticJobUseCase) listReportCourse(filter report.ReportCourse, out chan<- report.ReportCourse, wg *sync.WaitGroup) {
 	reportCourses, err := AUC.ReportCourse.FindFilter(context.Background(), filter)
 	if err != nil {
@@ -28,6 +28,7 @@ func (AUC *AnalyticJobUseCase) listReportCourse(filter report.ReportCourse, out 
 	close(out)
 }
 
+// createReportCourse a function to store report course
 func (AUC *AnalyticJobUseCase) createReportCourse(course canvas.Course) (ReportCourseID uint32, err error) {
 	reportCourse := report.ReportCourse{
 		CourseID:   course.ID,
@@ -37,9 +38,9 @@ func (AUC *AnalyticJobUseCase) createReportCourse(course canvas.Course) (ReportC
 	countTry := 0
 	for {
 		err = AUC.ReportCourse.CreateOrUpdateCourseID(context.TODO(), &reportCourse)
-		fmt.Println("ERROR CREATE REPORT COURSE ", err)
 		if err != nil {
 			if countTry > 2 {
+				AUC.Log.Error(err)
 				break
 			}
 			countTry++

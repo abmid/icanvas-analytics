@@ -66,7 +66,6 @@ func TestFixErrorUnmarshalStringJSON(t *testing.T) {
 	t.Log(rr)
 	assert.NilError(t, err, "Error Safe Get Int")
 	assert.Equal(t, rr[0].ID, uint32(1))
-	// t.Fatalf("P")
 }
 
 func TestSafeGetUint(t *testing.T) {
@@ -89,7 +88,6 @@ func TestSafeGetTime(t *testing.T) {
 	tt := safeGetTime(value)
 	t.Log(tt)
 	assert.Equal(t, tt, exceptation)
-	// t.Fatalf("P")
 }
 
 type TestA struct {

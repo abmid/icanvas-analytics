@@ -1,10 +1,11 @@
 package usecase
 
 import (
-	mock_enrollment "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/repository/mock"
-	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	"context"
 	"testing"
+
+	mock_enrollment "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/repository/mock"
+	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 
 	"github.com/golang/mock/gomock"
 	"gotest.tools/assert"

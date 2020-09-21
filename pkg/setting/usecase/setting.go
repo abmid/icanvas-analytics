@@ -9,17 +9,23 @@ package usecase
 
 import (
 	"github.com/abmid/icanvas-analytics/internal/inerr"
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/setting/entity"
 	"github.com/abmid/icanvas-analytics/pkg/setting/repository"
 )
 
 type settingUseCase struct {
 	SettingRepository repository.SettingRepository
+	Log               *logger.LoggerWrap
 }
 
 func NewSettingUseCase(sr repository.SettingRepository) *settingUseCase {
+
+	logger := logger.New()
+
 	return &settingUseCase{
 		SettingRepository: sr,
+		Log:               logger,
 	}
 }
 
@@ -32,12 +38,14 @@ func (UC *settingUseCase) CreateOrUpdate(setting *entity.Setting) error {
 	}
 	exists, err := UC.SettingRepository.FindByFilter(filter)
 	if err != nil {
+		UC.Log.Error(err)
 		return err
 	}
 	if len(exists) == 0 {
 		// Data Not Exist, must create
 		err := UC.SettingRepository.Create(setting)
 		if err != nil {
+			UC.Log.Error(err)
 			return err
 		}
 		return nil
@@ -45,6 +53,7 @@ func (UC *settingUseCase) CreateOrUpdate(setting *entity.Setting) error {
 	// Data exist must update
 	err = UC.SettingRepository.Update(exists[0].ID, *setting)
 	if err != nil {
+		UC.Log.Error(err)
 		return err
 	}
 	return nil
@@ -64,6 +73,7 @@ func (UC *settingUseCase) CreateAll(settings []*entity.Setting) error {
 		// Create or Update
 		err := UC.CreateOrUpdate(setting)
 		if err != nil {
+			UC.Log.Error(err)
 			return err
 		}
 	}
@@ -96,6 +106,7 @@ func (UC *settingUseCase) FindCanvasURL() (res *entity.Setting, err error) {
 	}
 	settings, err := UC.SettingRepository.FindByFilter(filter)
 	if err != nil {
+		UC.Log.Error(err)
 		return nil, err
 	}
 
@@ -119,6 +130,7 @@ func (UC *settingUseCase) FindCanvasToken() (res *entity.Setting, err error) {
 	}
 	settings, err := UC.SettingRepository.FindByFilter(filter)
 	if err != nil {
+		UC.Log.Error(err)
 		return nil, err
 	}
 

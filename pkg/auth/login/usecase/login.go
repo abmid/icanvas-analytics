@@ -10,36 +10,40 @@ package usecase
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"log"
 	"net/http"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/user/entity"
 	"github.com/abmid/icanvas-analytics/pkg/user/usecase"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type loginUseCase struct {
 	userUC usecase.UserUseCase
+	Log    *logger.LoggerWrap
 }
 
 func New(userUC usecase.UserUseCase) *loginUseCase {
+	logger := logger.New()
+
 	return &loginUseCase{
 		userUC: userUC,
+		Log:    logger,
 	}
 }
 
 func comparePasswords(hashedPwd string, plainPwd string) bool {
 	// Since we'll be getting the hashed password from the DB it
 	// will be a string so we'll need to convert it to a byte slice
-	fmt.Printf("Hashed : %s", hashedPwd)
-	fmt.Printf("PLaine : %s", plainPwd)
+
 	byteHash := []byte(hashedPwd)
 	bytePlain := []byte(plainPwd)
+
 	err := bcrypt.CompareHashAndPassword(byteHash, bytePlain)
+
+	logger := logger.New()
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		return false
 	}
 
@@ -50,7 +54,7 @@ func (UC *loginUseCase) Login(email, password string) (res *entity.User, httpSta
 
 	user, err := UC.userUC.Find(email)
 	if err != nil {
-		logrus.Error(err)
+		UC.Log.Error(err)
 		if err == sql.ErrNoRows {
 			return nil, http.StatusUnauthorized, errors.New("User not found")
 		}

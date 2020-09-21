@@ -10,17 +10,23 @@ package usecase
 import (
 	"context"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/report/course/repository"
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 )
 
 type reportCourseUseCase struct {
 	RepoReportCourse repository.CourseRepositoryPG
+	Log              *logger.LoggerWrap
 }
 
 func NewReportCourseUseCase(repoReportCourse repository.CourseRepositoryPG) *reportCourseUseCase {
+
+	logger := logger.New()
+
 	return &reportCourseUseCase{
 		RepoReportCourse: repoReportCourse,
+		Log:              logger,
 	}
 }
 
@@ -74,6 +80,7 @@ func (useCase *reportCourseUseCase) CreateOrUpdateCourseID(ctx context.Context, 
 	if resReport.ID == 0 {
 		err := useCase.RepoReportCourse.Create(ctx, reportCourse)
 		if err != nil {
+			useCase.Log.Error(err)
 			return err
 		}
 		return nil

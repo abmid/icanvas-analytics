@@ -8,21 +8,29 @@
 package usecase
 
 import (
+	"log"
 	"net"
 	"runtime"
 	"sync"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/course/repository"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
+	"github.com/sirupsen/logrus"
 )
 
 type courseUseCase struct {
 	CourseRepo repository.CourseRepository
+	Log        *logger.LoggerWrap
 }
 
 func NewCourseUseCase(courseRepo repository.CourseRepository) *courseUseCase {
+
+	logger := logger.New()
+
 	return &courseUseCase{
 		CourseRepo: courseRepo,
+		Log:        logger,
 	}
 }
 
@@ -45,10 +53,15 @@ func (CUC *courseUseCase) Courses(accountId, page uint32) (res []entity.Course, 
 * @param *sync.WaitGroup
  */
 func workerCourses(pool uint32, page *uint32, accountId uint32, chCourse chan<- []entity.Course, CUC *courseUseCase) {
+
 	workerChCourse := make(chan []entity.Course, 50)
+
 	var wg sync.WaitGroup
 	var mtx sync.Mutex
 	var i uint32
+
+	logger := logger.New()
+
 	for i = 0; i < pool; i++ {
 		wg.Add(1)
 		go func(page *uint32) {
@@ -57,7 +70,8 @@ func workerCourses(pool uint32, page *uint32, accountId uint32, chCourse chan<- 
 			*page++
 			mtx.Unlock()
 			if err != nil {
-				panic(err)
+				logger.Error(err)
+				log.Fatal(err)
 			}
 			workerChCourse <- course
 			defer wg.Done()
@@ -112,13 +126,20 @@ outerLoop:
 		course, err := CUC.Courses(accountID, countPage)
 		if err != nil {
 			if countTry > 2 {
-				panic(err)
+				CUC.Log.Error(err)
+				log.Fatal(err)
 			}
 			if err, ok := err.(net.Error); ok && err.Timeout() {
 				countTry++
 				break outerLoop
 			} else {
-				panic(err)
+				CUC.Log.WithFields(
+					logrus.Fields{
+						"accountID": accountID,
+						"page":      countPage,
+					},
+				).Error(err)
+				log.Fatal(err)
 			}
 		}
 		if len(course) < 1 {

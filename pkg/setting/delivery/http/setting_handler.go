@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/auth"
 	"github.com/abmid/icanvas-analytics/pkg/setting/entity"
 	"github.com/abmid/icanvas-analytics/pkg/setting/usecase"
 	echo "github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
 )
 
 type ResponseError struct {
@@ -21,6 +21,7 @@ type ResponseSuccess struct {
 
 type SettingHandler struct {
 	SettingUseCase usecase.SettingUseCase
+	Log            *logger.LoggerWrap
 }
 
 type FormData struct {
@@ -34,7 +35,7 @@ func (SH *SettingHandler) All() echo.HandlerFunc {
 		filter := entity.Setting{}
 		settings, err := SH.SettingUseCase.FindByFilter(filter)
 		if err != nil {
-			logrus.Error(err)
+			SH.Log.Error(err)
 			return c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		}
 		if len(settings) == 0 {
@@ -50,7 +51,7 @@ func (SH *SettingHandler) Create() echo.HandlerFunc {
 		// Bind
 		err := c.Bind(formData)
 		if err != nil {
-			logrus.Error(err)
+			SH.Log.Error(err)
 			return c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		}
 		// validate
@@ -77,7 +78,7 @@ func (SH *SettingHandler) Update() echo.HandlerFunc {
 		formData := new(FormData)
 		// Bind
 		if err := c.Bind(formData); err != nil {
-			logrus.Error(err)
+			SH.Log.Error(err)
 			return c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		}
 		// validate
@@ -109,7 +110,7 @@ func (SH *SettingHandler) FindByFilter() echo.HandlerFunc {
 		// Bind
 		err := c.Bind(filter)
 		if err != nil {
-			logrus.Error(err)
+			SH.Log.Error(err)
 			return c.JSON(http.StatusBadRequest, ResponseError{Message: err.Error()})
 		}
 		// validate
@@ -126,8 +127,12 @@ func (SH *SettingHandler) FindByFilter() echo.HandlerFunc {
 }
 
 func NewHandler(path string, g *echo.Group, JWTKey string, settingUC usecase.SettingUseCase) {
+
+	logger := logger.New()
+
 	handler := SettingHandler{
 		SettingUseCase: settingUC,
+		Log:            logger,
 	}
 	r := g.Group(path)
 	r.Use(auth.MiddlewareAuthJWT(JWTKey))

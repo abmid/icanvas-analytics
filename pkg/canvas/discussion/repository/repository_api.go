@@ -10,10 +10,12 @@ package repository
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/abmid/icanvas-analytics/internal/inerr"
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	"github.com/abmid/icanvas-analytics/pkg/setting/usecase"
 )
@@ -21,12 +23,16 @@ import (
 type Repository struct {
 	Client  *http.Client
 	Setting usecase.SettingUseCase
+	Log     *logger.LoggerWrap
 }
 
 func NewRepositoryAPI(client *http.Client, settingUC usecase.SettingUseCase) *Repository {
+	logger := logger.New()
+
 	return &Repository{
 		Client:  client,
 		Setting: settingUC,
+		Log:     logger,
 	}
 }
 
@@ -38,6 +44,7 @@ func (r *Repository) ListDiscussionByCourseID(courseID uint32) (res []entity.Dis
 	// Check User already setting Canvas configuration
 	exists, url, token, err := r.Setting.ExistsCanvasConfig()
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	// if not exist canvas configuration in db
@@ -46,6 +53,7 @@ func (r *Repository) ListDiscussionByCourseID(courseID uint32) (res []entity.Dis
 	}
 	req, err := http.NewRequest("GET", url+"/api/v1/courses/"+castCourseID+"/discussion_topics", nil)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	req.Header.Set(
@@ -53,15 +61,26 @@ func (r *Repository) ListDiscussionByCourseID(courseID uint32) (res []entity.Dis
 	)
 	resp, err := r.Client.Do(req)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	// Check if response not success
+	if resp.StatusCode != 200 {
+		r.Log.Error(err)
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Fatal(string(body))
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
+		r.Log.Error(err)
 		return nil, err
 	}
 	return res, nil

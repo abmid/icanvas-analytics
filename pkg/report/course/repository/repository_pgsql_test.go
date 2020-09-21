@@ -4,18 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
-	"github.com/sirupsen/logrus"
 	"gotest.tools/assert"
 )
 
@@ -25,30 +20,6 @@ type AnyTime struct{}
 func (a AnyTime) Match(v driver.Value) bool {
 	_, ok := v.(time.Time)
 	return ok
-}
-
-func RealSetup() *sql.DB {
-	parse, err := pgx.ParseURI("postgres://abdulhamid:@localhost:5432/canvas_analytics_dev?sslmode=disable")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
-		os.Exit(1)
-	}
-	db := stdlib.OpenDB(parse)
-	return db
-}
-
-func TestCreateReal(t *testing.T) {
-	repo := NewCoursePG(RealSetup())
-	reportCourse := entity.ReportCourse{
-		AccountID:  1,
-		CourseID:   1,
-		CourseName: "Name Course",
-	}
-	err := repo.Create(context.TODO(), &reportCourse)
-	logrus.Error(err)
-	t.Log(reportCourse)
-	t.Log(err)
-	t.Fatalf("P")
 }
 
 func TestCreate(t *testing.T) {
@@ -199,9 +170,8 @@ func TestFindByID(t *testing.T) {
 	mock.ExpectQuery("SELECT").WithArgs(uint32(1)).WillReturnRows(rows, nil)
 	uc := NewCoursePG(db)
 	res, err := uc.FindByID(context.Background(), uint32(1))
-	t.Log(err)
-	t.Log(res)
-	t.Fatalf("P")
+	assert.NilError(t, err)
+	assert.Equal(t, uint32(1), res.ID)
 }
 
 func TestFindByCourseIDDateNow(t *testing.T) {
@@ -230,7 +200,6 @@ func TestFindByCourseIDDateNow(t *testing.T) {
 	mock.ExpectQuery("SELECT").WithArgs(uint32(1)).WillReturnRows(rows, nil)
 	uc := NewCoursePG(db)
 	res, err := uc.FindByCourseIDDateNow(context.Background(), uint32(1))
-	t.Log(err)
-	t.Log(res)
-	t.Fatalf("P")
+	assert.NilError(t, err)
+	assert.Equal(t, uint32(1), res.ID)
 }

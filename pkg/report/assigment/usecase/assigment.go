@@ -10,6 +10,7 @@ package usecase
 import (
 	"context"
 
+	"github.com/abmid/icanvas-analytics/internal/logger"
 	"github.com/abmid/icanvas-analytics/pkg/report/assigment/repository"
 	"github.com/abmid/icanvas-analytics/pkg/report/entity"
 	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
@@ -17,11 +18,16 @@ import (
 
 type reportAssigmentUseCase struct {
 	RepoReportAssgiment repository.AssigmentRepositoryPG
+	Log                 *logger.LoggerWrap
 }
 
 func NewReportAssigmentUseCase(repoReportAssigment repository.AssigmentRepositoryPG) *reportAssigmentUseCase {
+
+	logger := logger.New()
+
 	return &reportAssigmentUseCase{
 		RepoReportAssgiment: repoReportAssigment,
+		Log:                 logger,
 	}
 }
 
@@ -70,17 +76,20 @@ func (useCase *reportAssigmentUseCase) CreateOrUpdateByCourseReportID(ctx contex
 func (useCase *reportAssigmentUseCase) CreateOrUpdateByFilter(ctx context.Context, filter entity.ReportAssigment, assigment *entity.ReportAssigment) error {
 	findReportAss, err := useCase.RepoReportAssgiment.FindFirstByFilter(ctx, filter)
 	if err != nil {
+		useCase.Log.Error(err)
 		return err
 	}
 	assigment.ID = findReportAss.ID
 	if findReportAss.ID == 0 {
 		err := useCase.RepoReportAssgiment.Create(ctx, assigment)
 		if err != nil {
+			useCase.Log.Error(err)
 			return err
 		}
 	} else {
 		err := useCase.RepoReportAssgiment.Update(ctx, assigment)
 		if err != nil {
+			useCase.Log.Error(err)
 			return err
 		}
 	}
@@ -91,6 +100,7 @@ func (useCase *reportAssigmentUseCase) FindFilter(ctx context.Context, filter en
 
 	find, err := useCase.RepoReportAssgiment.FindFilter(ctx, filter)
 	if err != nil {
+		useCase.Log.Error(err)
 		return res, err
 	}
 	res = find
