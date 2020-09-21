@@ -19,6 +19,6 @@ type AnalyticsCourse struct {
 	StudentCount       uint32       `json:"student_count"`
 	FinishGradingCount uint32       `json:"finish_grading_count"`
 	AverageGrading     float32      `json:"average_grading"` //Average Grading Teacher
-	FinalScore         float64      `json:"final_score"`     // Kalkulasi semua (assigmentCount + Disscussion Count + Average Grade) / 3
+	FinalScore         float64      `json:"final_score"`     // calculate (assigmentCount + Disscussion Count + Average Grade) / 3
 	Teacher            *canvas.User `json:"teacher,omitempty"`
 }

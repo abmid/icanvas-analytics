@@ -2,20 +2,15 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
-	"fmt"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/Masterminds/squirrel"
+	"github.com/abmid/icanvas-analytics/internal/pagination"
+	paginate_mock "github.com/abmid/icanvas-analytics/internal/pagination/mock"
 	"github.com/abmid/icanvas-analytics/pkg/analytics/entity"
 	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
-
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
+	"github.com/golang/mock/gomock"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"gotest.tools/assert"
 )
@@ -28,55 +23,6 @@ func (a AnyTime) Match(v driver.Value) bool {
 	return ok
 }
 
-func RealSetup() *sql.DB {
-	parse, err := pgx.ParseURI("postgres://abdulhamid:@localhost:5432/canvas_analytics_dev?sslmode=disable")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
-		os.Exit(1)
-	}
-	db := stdlib.OpenDB(parse)
-	return db
-}
-
-func TestFindBestCourseByFilterReal(t *testing.T) {
-	ctx := context.TODO()
-	repo := NewRepositoryPG(RealSetup())
-	filter := entity.FilterAnalytics{
-		OrderBy:          "desc",
-		AnalyticsTeacher: false,
-		Limit:            100,
-		Page:             2,
-	}
-	res, pag, err := repo.FindBestCourseByFilter(ctx, filter)
-	t.Log(pag)
-	t.Log(err)
-	for _, each := range res {
-		t.Log(each)
-	}
-	t.Fatalf("")
-}
-
-func TestBuildPagination(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-	mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"total_count"}).AddRow(7))
-	filter := entity.FilterAnalytics{
-		AnalyticsTeacher: true,
-	}
-	repo := NewRepositoryPG(db)
-	var query squirrel.SelectBuilder
-	query = repo.sq.Select().From("report_courses")
-	res, err := repo.buildPaginationInfo(query, filter)
-
-	ress, _ := json.Marshal(res)
-	t.Fatal(string(ress))
-	assert.NilError(t, err)
-	assert.Equal(t, res.Total, uint32(1))
-}
-
 func TestFindBestCourseByFilter(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	ctx := context.TODO()
@@ -85,6 +31,7 @@ func TestFindBestCourseByFilter(t *testing.T) {
 	}
 	defer db.Close()
 	t.Run("course", func(t *testing.T) {
+		// Create Mock Query
 		exceptedResult := entity.AnalyticsCourse{
 			ID:                 1,
 			AccountID:          1,
@@ -96,6 +43,7 @@ func TestFindBestCourseByFilter(t *testing.T) {
 			FinishGradingCount: 5,
 			StudentCount:       10,
 		}
+
 		rows := sqlmock.NewRows([]string{"id", "account_id", "course_id", "course_name", "assigment_count", "discussion_count", "student_count", "finish_grading_count", "final_score"}).AddRow(
 			exceptedResult.ID,
 			exceptedResult.AccountID,
@@ -107,15 +55,28 @@ func TestFindBestCourseByFilter(t *testing.T) {
 			exceptedResult.FinishGradingCount,
 			exceptedResult.FinalScore,
 		)
+
 		mock.ExpectQuery("SELECT").WillReturnRows(rows)
-		repo := NewRepositoryPG(db)
+
+		// Paginate Mock
+		exceptedPaginate := pagination.Pagination{
+			Total: 1,
+		}
+		ctrl := gomock.NewController(t)
+		paginationMock := paginate_mock.NewMockPaginationInterface(ctrl)
+		paginationMock.EXPECT().BuildPagination(gomock.Any(), gomock.Any(), gomock.Any()).Return(exceptedPaginate, nil)
+
+		// Init Repo
+		repo := NewRepositoryPG(db, paginationMock)
+
 		filter := entity.FilterAnalytics{
 			AnalyticsTeacher: false,
 		}
-		res, _, err := repo.FindBestCourseByFilter(ctx, filter)
-		t.Fatal(err)
+
+		res, pag, err := repo.FindBestCourseByFilter(ctx, filter)
 		assert.NilError(t, err)
 		assert.Equal(t, len(res), 1)
+		assert.Equal(t, uint32(1), pag.Total)
 		averagaGrading := (float32(exceptedResult.FinishGradingCount) / float32(exceptedResult.StudentCount)) * 100
 		assert.Equal(t, res[0].AverageGrading, averagaGrading, "error course average grade")
 		assert.Equal(t, res[0].CourseName, exceptedResult.CourseName, "error course courseName")
@@ -156,13 +117,25 @@ func TestFindBestCourseByFilter(t *testing.T) {
 				exceptedTeacher.Enrollments,
 			)
 			mock.ExpectQuery("SELECT").WillReturnRows(rows)
-			repo := NewRepositoryPG(db)
+			// Paginate Mock
+			exceptedPaginate := pagination.Pagination{
+				Total: 1,
+			}
+			ctrl := gomock.NewController(t)
+			paginationMock := paginate_mock.NewMockPaginationInterface(ctrl)
+			paginationMock.EXPECT().BuildPagination(gomock.Any(), gomock.Any(), gomock.Any()).Return(exceptedPaginate, nil)
+
+			// Init Repo
+			repo := NewRepositoryPG(db, paginationMock)
+
 			filter := entity.FilterAnalytics{
 				AnalyticsTeacher: true,
 			}
-			res, _, err := repo.FindBestCourseByFilter(ctx, filter)
+
+			res, pag, err := repo.FindBestCourseByFilter(ctx, filter)
 			assert.NilError(t, err)
 			assert.Equal(t, len(res), 1)
+			assert.Equal(t, uint32(1), pag.Total)
 			averagaGrading := (float32(exceptedResult.FinishGradingCount) / float32(exceptedResult.StudentCount)) * 100
 			assert.Equal(t, res[0].AverageGrading, averagaGrading, "Error teacher Average Grade")
 			assert.Equal(t, res[0].CourseName, exceptedResult.CourseName, "Error teacher CourseName")

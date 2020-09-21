@@ -45,7 +45,6 @@ func TestGetBestCourse(t *testing.T) {
 	w := httptest.NewRecorder()
 	f := make(url.Values)
 	f.Set("account_id", "1")
-	f.Set("date", "2020-01-02")
 	req, _ := http.NewRequest("GET", "/v1/analytics/courses?"+f.Encode(), nil)
 	// req.Header.Add(echo.HeaderAuthorization, "Bearer "+token)
 	cookieToken := http.Cookie{

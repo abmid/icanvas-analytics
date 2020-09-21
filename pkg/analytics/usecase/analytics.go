@@ -24,6 +24,7 @@ func NewAnalyticsUseCase(repoAnalytics repository.AnalyticsRepository) *Analytic
 	}
 }
 
+// FindBestCourseByFilter a function to get all course or by filter from usecase, and will be use in layer 3 (Controller, etc)
 func (aUC *AnalyticsUC) FindBestCourseByFilter(ctx context.Context, filter entity.FilterAnalytics) (res []entity.AnalyticsCourse, pag pagination.Pagination, err error) {
 	res, pag, err = aUC.repoAnalytics.FindBestCourseByFilter(ctx, filter)
 	if err != nil {

@@ -32,15 +32,17 @@ func TestFindBestCourseByFilter(t *testing.T) {
 			StudentCount:       10,
 			AverageGrading:     50,
 		}}
-		exceptedPag := pagination.Pagination{
+		resPaginate := pagination.Pagination{
+			Total:       1,
 			CurrentPage: 1,
 		}
-		mockRepo.EXPECT().FindBestCourseByFilter(ctx, filter).Return(exceptedResult, exceptedPag, nil)
+		mockRepo.EXPECT().FindBestCourseByFilter(ctx, filter).Return(exceptedResult, resPaginate, nil)
+
 		UC := NewAnalyticsUseCase(mockRepo)
 		res, pag, err := UC.FindBestCourseByFilter(ctx, filter)
 		assert.NilError(t, err)
 		assert.Equal(t, len(res), len(exceptedResult))
-		assert.Equal(t, pag.CurrentPage, exceptedPag.CurrentPage)
+		assert.Equal(t, pag.CurrentPage, uint32(1))
 	})
 	t.Run("teacher", func(t *testing.T) {
 		filter := entity.FilterAnalytics{
@@ -64,15 +66,17 @@ func TestFindBestCourseByFilter(t *testing.T) {
 			AverageGrading:     50,
 			Teacher:            &exceptedTeacher,
 		}}
-		exceptedPag := pagination.Pagination{
+		resPaginate := pagination.Pagination{
+			Total:       1,
 			CurrentPage: 1,
 		}
-		mockRepo.EXPECT().FindBestCourseByFilter(ctx, filter).Return(exceptedResult, exceptedPag, nil)
+		mockRepo.EXPECT().FindBestCourseByFilter(ctx, filter).Return(exceptedResult, resPaginate, nil)
+
 		UC := NewAnalyticsUseCase(mockRepo)
 		res, pag, err := UC.FindBestCourseByFilter(ctx, filter)
 		assert.NilError(t, err)
 		assert.Equal(t, len(res), len(exceptedResult))
 		assert.Equal(t, res[0].Teacher.LoginID, exceptedResult[0].Teacher.LoginID)
-		assert.Equal(t, pag.CurrentPage, exceptedPag.CurrentPage)
+		assert.Equal(t, pag.CurrentPage, resPaginate.CurrentPage)
 	})
 }
