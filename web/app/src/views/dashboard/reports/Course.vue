@@ -4,6 +4,9 @@
     <content-main>
       <!-- Wrap Course Reports -->
       <i-card title="Course Reports" addClass :useHeader="true" header="Featured" :minimize="false">
+        <template #generate-analytics>
+          <button class="btn btn-sm btn-primary" @click="submitGenerateAnalytics()">Get a New Data Now</button>
+        </template>
         <template #card-text>
           <!-- Filter -->
           <i-card title="Filter" :useHeader="true" :minimize="true">
@@ -44,6 +47,7 @@ import ICard from "@/components/cards/Card";
 import FTopTen from "@/features/dashboard/reports/TopTen"
 import FFilter from "@/features/dashboard/reports/Filter"
 import FTable from "@/features/dashboard/reports/Table"
+import {generateAnalytics} from "@/api/reports/generate"
 export default {
   name: "Home",
   components: {
@@ -66,10 +70,21 @@ export default {
           id: "",
           label: "Select sub account"
         },
-        teacher_analytics: false,
+        teacher_analytics: true,
         date: null
       },
     };
   },
+  methods : {
+    submitGenerateAnalytics : function(){
+      generateAnalytics()
+      .then(res => {
+        console.log(res)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+    }
+  }
 };
 </script>

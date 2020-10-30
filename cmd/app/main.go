@@ -12,11 +12,14 @@ import (
 
 	"github.com/abmid/icanvas-analytics/internal/validation"
 	analytics_handler "github.com/abmid/icanvas-analytics/pkg/analytics/delivery/http"
+	analytics_job_handler "github.com/abmid/icanvas-analytics/pkg/analyticsjob/delivery/http"
+	analytics_job "github.com/abmid/icanvas-analytics/pkg/analyticsjob/delivery/job"
 	auth_login_handler "github.com/abmid/icanvas-analytics/pkg/auth/login/delivery/http"
 	auth_logout_handler "github.com/abmid/icanvas-analytics/pkg/auth/logout/delivery/http"
 	auth_register_handler "github.com/abmid/icanvas-analytics/pkg/auth/register/delivery/http"
 	canvas_account_handler "github.com/abmid/icanvas-analytics/pkg/canvas/account/delivery/http"
 	setting_handler "github.com/abmid/icanvas-analytics/pkg/setting/delivery/http"
+	ws_handler "github.com/abmid/icanvas-analytics/pkg/websocket/delivery/http"
 	echo "github.com/labstack/echo/v4"
 	middleware "github.com/labstack/echo/v4/middleware"
 
@@ -146,6 +149,14 @@ func main() {
 	// Canvas
 	canvasAccountUC := canvas_account_handler.SetupUseCase(settingUC)
 	canvas_account_handler.NewHandler("/canvas", r1, JWTKey, canvasAccountUC)
+
+	// Websocket
+	wsUC := ws_handler.SetupUseCase()
+	ws_handler.NewHandler("/ws", r1, JWTKey, wsUC)
+
+	// AnalyticsJob
+	analyticsJobUC := analytics_job.JobUseCase(db, settingUC)
+	analytics_job_handler.NewHandler("/analytics-job", r1, JWTKey, analyticsJobUC, wsUC)
 
 	// Start Server
 	e.Start(config.GetString("domain.port"))

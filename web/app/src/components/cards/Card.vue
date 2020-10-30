@@ -11,6 +11,7 @@
         <div v-if="useHeader" class="card-header">
             <h5 class="card-title">{{ title }}</h5>
             <div class="card-tools">
+                <slot name="generate-analytics"></slot>
                 <button v-if="minimize" type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
                 </button>
             </div>              

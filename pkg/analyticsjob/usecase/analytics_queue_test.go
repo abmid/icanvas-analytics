@@ -5,17 +5,17 @@ import (
 	"sync"
 	"testing"
 
+	canvas_assigment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/usecase/mock"
+	canvas_course_uc "github.com/abmid/icanvas-analytics/pkg/canvas/course/usecase/mock"
+	canvas_discussion_uc "github.com/abmid/icanvas-analytics/pkg/canvas/discussion/usecase/mock"
+	canvas_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/usecase/mock"
+	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	report_assigment_uc "github.com/abmid/icanvas-analytics/pkg/report/assigment/usecase/mock"
 	report_course_uc "github.com/abmid/icanvas-analytics/pkg/report/course/usecase/mock"
 	report_discussion_uc "github.com/abmid/icanvas-analytics/pkg/report/discussion/usecase/mock"
 	report_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/report/enrollment/usecase/mock"
 	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 	report_result_uc "github.com/abmid/icanvas-analytics/pkg/report/result/usecase/mock"
-	canvas_assigment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/usecase/mock"
-	canvas_course_uc "github.com/abmid/icanvas-analytics/pkg/canvas/course/usecase/mock"
-	canvas_discussion_uc "github.com/abmid/icanvas-analytics/pkg/canvas/discussion/usecase/mock"
-	canvas_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/usecase/mock"
-	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 
 	"github.com/golang/mock/gomock"
 	"gotest.tools/assert"
@@ -401,5 +401,6 @@ func TestRunJob(t *testing.T) {
 	}
 	reportResultUC.EXPECT().CreateOrUpdateByCourseReportID(ctx, &reportResult).Return(nil).AnyTimes()
 	AUC := NewAnalyticJobUseCase(canvasCourseUC, canvasAssigmentUC, canvasEnrollmentUC, canvasDiscussionUC, reportAssigmentUC, reportCourseUC, reportDiscussionUC, reportEnrollmentUC, reportResultUC)
-	AUC.RunJob(uint32(1))
+	finish := AUC.RunJob(uint32(1))
+	assert.Equal(t, true, <-finish)
 }

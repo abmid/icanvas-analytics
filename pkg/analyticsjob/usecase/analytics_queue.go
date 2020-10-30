@@ -11,6 +11,7 @@ import (
 	"context"
 	"sync"
 
+	logger "github.com/abmid/icanvas-analytics/internal/logger"
 	assigment_usecase "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/usecase"
 	course_usecase "github.com/abmid/icanvas-analytics/pkg/canvas/course/usecase"
 	discussion_usecase "github.com/abmid/icanvas-analytics/pkg/canvas/discussion/usecase"
@@ -22,8 +23,6 @@ import (
 	report_enrollment_usecase "github.com/abmid/icanvas-analytics/pkg/report/enrollment/usecase"
 	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 	report_result_usecase "github.com/abmid/icanvas-analytics/pkg/report/result/usecase"
-
-	"github.com/sirupsen/logrus"
 )
 
 type AnalyticJobUseCase struct {
@@ -36,6 +35,7 @@ type AnalyticJobUseCase struct {
 	ReportDiscussion report_discussion_usecase.ReportDiscussionUseCase
 	ReportEnrollment report_enrollment_usecase.ReportEnrollmentUseCase
 	ReportResult     report_result_usecase.ReportResultUseCase
+	Log              *logger.LoggerWrap
 }
 
 func NewAnalyticJobUseCase(
@@ -48,6 +48,8 @@ func NewAnalyticJobUseCase(
 	reportDiss report_discussion_usecase.ReportDiscussionUseCase,
 	reportEnroll report_enrollment_usecase.ReportEnrollmentUseCase,
 	reportResult report_result_usecase.ReportResultUseCase) *AnalyticJobUseCase {
+
+	logger := logger.New()
 	return &AnalyticJobUseCase{
 		Course:           course,
 		Assigment:        assigment,
@@ -58,25 +60,35 @@ func NewAnalyticJobUseCase(
 		ReportDiscussion: reportDiss,
 		ReportEnrollment: reportEnroll,
 		ReportResult:     reportResult,
+		Log:              logger,
 	}
 }
 
-var (
+const (
 	totalWorker    = 150
 	totalWorkerJob = 220
 )
 
-func (AUC *AnalyticJobUseCase) RunJob(accountID uint32) {
+// RunJob
+func (AUC *AnalyticJobUseCase) RunJob(accountID uint32) <-chan bool {
 	wg := new(sync.WaitGroup)
+	finish := make(chan bool)
+	// Pipeline
 	chCourses := make(chan []canvas.Course)
+	// Running Worker and wait value upstream via inbound channel (chCourses)
 	go AUC.dispatchWorkerJob(chCourses, wg)
+	// Get all course and send value downstream via outbound channel (chCourse)
 	AUC.Course.GoAllCourse(accountID, chCourses, wg)
-	wg.Wait()
+
+	go func() {
+		wg.Wait()
+		finish <- true
+	}()
+
+	return finish
 }
 
-/**
-* This method for init running worker to analyze course from RunJob
- */
+// dispatchWorkerJob a function go routine that runs as many totalWorkerJob and wait value from upstream via inbound channel
 func (AUC *AnalyticJobUseCase) dispatchWorkerJob(chCourses <-chan []canvas.Course, wg *sync.WaitGroup) {
 	// Init running worker same like var totalWorkerJob
 	for i := 0; i < totalWorkerJob; i++ {
@@ -84,16 +96,21 @@ func (AUC *AnalyticJobUseCase) dispatchWorkerJob(chCourses <-chan []canvas.Cours
 		go func(in <-chan []canvas.Course, wg *sync.WaitGroup) {
 			// Waiting Receive data from channel
 			for courses := range in {
-				// Create to pgsql in report_course to get id
+
 				for _, course := range courses {
+					// Create report course.
 					reportCourseID, err := AUC.createReportCourse(course)
 					if err != nil {
-						panic(err)
+						AUC.Log.Error(err)
+						continue
+						// The future will be save into database for better information
 					}
+					// Analyze Assigment, Discussion, Enrollment and store to result report course
 					err = AUC.doAnalyzeReportCourseJob(reportCourseID, course.ID)
 					if err != nil {
-						logrus.Error(err)
+						AUC.Log.Error(err)
 						continue
+						// The future will be save into database for better information
 					}
 				}
 				// After receive data from channel and process in above wg.Done
@@ -103,18 +120,25 @@ func (AUC *AnalyticJobUseCase) dispatchWorkerJob(chCourses <-chan []canvas.Cours
 	}
 }
 
+// doAnalyzeReportCourseJob analyze how many assigment, discussion, finish enrollment and save to DB report_course (result)
 func (AUC *AnalyticJobUseCase) doAnalyzeReportCourseJob(reportCourseID, courseID uint32) error {
+
 	wg := new(sync.WaitGroup)
+
 	chListAssigment := make(chan []canvas.Assigment)
 	chListDiscussion := make(chan []canvas.Discussion)
 	chListEnrollment := make(chan []canvas.Enrollment)
+
 	wg.Add(3)
+	// Running Worker Create Report and send result to channel
 	go AUC.createReportAssigment(wg, chListAssigment, context.TODO(), reportCourseID, courseID)
 	go AUC.createReportDiscussion(wg, chListDiscussion, context.TODO(), reportCourseID, courseID)
 	go AUC.createReportEnrollment(wg, chListEnrollment, context.TODO(), reportCourseID, courseID)
+
 	var listAssigment []canvas.Assigment
 	var listDiscussion []canvas.Discussion
 	var listEnrollment []canvas.Enrollment
+	// Wait channel send data and save to list
 	for i := 0; i < 3; i++ {
 		select {
 		case ass := <-chListAssigment:
@@ -125,9 +149,14 @@ func (AUC *AnalyticJobUseCase) doAnalyzeReportCourseJob(reportCourseID, courseID
 			listEnrollment = enroll
 		}
 	}
+
+	// Get Count Assigment
 	assigmentCount := len(listAssigment)
+	// Get Count Discussion
 	discussionCount := len(listDiscussion)
+	// Check Score Grade
 	studentCount, finishGrading, averageGrading := AUC.CheckScoreGrade(listEnrollment)
+	// Fill report result
 	reportResult := report.ReportResult{
 		AssigmentCount:     uint32(assigmentCount),
 		DiscussionCount:    uint32(discussionCount),
@@ -137,18 +166,13 @@ func (AUC *AnalyticJobUseCase) doAnalyzeReportCourseJob(reportCourseID, courseID
 		ReportCourseID:     reportCourseID,
 	}
 
+	// Svae to DB Report Course (Result Report).
 	err := AUC.ReportResult.CreateOrUpdateByCourseReportID(context.TODO(), &reportResult)
 	if err != nil {
+		AUC.Log.Error(err)
 		return err
 	}
 
 	wg.Wait()
 	return nil
 }
-
-// TODO : 1 GET ALL COURSE 50
-// TODO : 2. Run Worker to get Course 50 before
-// TODO : 3. doAnalyzeReportCourseJob
-// TODO : 3.1 Inside doAnalyzeReportCourseJob from go channel createReportAssigment send back channel list assigment
-// TODO : 3.2 createReportDiscussion send back channel List discussion
-// TODO : 3.3 createReportEnrollment send back channel list enrollment and then check score

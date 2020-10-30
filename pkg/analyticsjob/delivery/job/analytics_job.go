@@ -36,20 +36,21 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+// RunScheduling
 func RunScheduling(c *cron.Cron, db *sql.DB, settingUC setting_uc.SettingUseCase) {
-	useCase := JobUseCase(db, settingUC)
+	// useCase := JobUseCase(db, settingUC)
 	status := true
-	useCase.RunJob(uint32(1))
-	c.AddFunc("@every 0h0m1s", func() {
+	// useCase.RunJob(uint32(1))
+	c.AddFunc("@every 0h1m1s", func() {
 		if status {
 			fmt.Println("Running Run Job")
 			// useCase.RunJob(uint32(39))
-			status = false
 		}
 
 	})
 }
 
+// JobUseCase a function to make simple completely requirement analytics job for layer 3 in clean architecture
 func JobUseCase(db *sql.DB, settingUC setting_uc.SettingUseCase) *analyticsjob.AnalyticJobUseCase {
 	client := http.DefaultClient
 	canvasRepoAssigment := canvas_repo_assigment.NewRepositoryAPI(client, settingUC)
