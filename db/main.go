@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -15,26 +14,23 @@ import (
 func main() {
 	// Init Config
 	fmt.Println("1. Get Config Information")
-	getEnv := os.Getenv("APP_ENV")
-	if getEnv == "production" {
-		viper.SetConfigName("prod")
-	} else {
-		viper.SetConfigName("dev") // name of config file (without extension)
-	}
-	viper.SetConfigType("yaml")       // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath("../configs") // path to look for the config file in
-	err := viper.ReadInConfig()       // Find and read the config file
-	if err != nil {                   // Handle errors reading the config file
+	// getEnv := os.Getenv("APP_ENV")
+	viper.SetConfigType("env") // REQUIRED if the config file does not have the extension in the name
+	viper.SetConfigName(".env")
+	viper.AddConfigPath("../")  // path to look for the config file in
+	err := viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 
-	dbHost := viper.GetString("database.host")
-	dbUsername := viper.GetString("database.username")
-	dbName := viper.GetString("database.name")
-	dbPassword := viper.GetString("database.password")
+	dbHost := viper.GetString("PG_HOST")
+	dbUsername := viper.GetString("PG_USER")
+	dbName := viper.GetString("PG_DBNAME")
+	dbPassword := viper.GetString("PG_PASSWORD")
+	dbPort := viper.GetString("PG_PORT")
 	m, err := migrate.New(
 		"file://migrations",
-		"postgres://"+dbUsername+":"+dbPassword+"@"+dbHost+":5432/"+dbName+"?sslmode=disable")
+		"postgres://"+dbUsername+":"+dbPassword+"@"+dbHost+":"+dbPort+"/"+dbName+"?sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +49,7 @@ func main() {
 			log.Fatal(err)
 		}
 	} else {
-		if err := m.Up(); err != nil {
+		if err := m.Up(); err != nil && m.Up().Error() != "no change" {
 			log.Fatal(err)
 		}
 	}

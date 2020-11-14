@@ -43,8 +43,8 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-func dbSetup(host, username, dbname, password string) *sql.DB {
-	parse, err := pgx.ParseURI("postgres://" + username + ":" + password + "@" + host + ":5432/" + dbname + "?sslmode=disable")
+func dbSetup(host, port, username, dbname, password string) *sql.DB {
+	parse, err := pgx.ParseURI("postgres://" + username + ":" + password + "@" + host + ":" + port + "/" + dbname + "?sslmode=disable")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
 		os.Exit(1)
@@ -97,7 +97,8 @@ func main() {
 	dbUsername := config.GetString("PG_USER")
 	dbName := config.GetString("PG_DBNAME")
 	dbPassword := config.GetString("PG_PASSWORD")
-	db := dbSetup(dbHost, dbUsername, dbName, dbPassword)
+	dbPort := config.GetString("PG_PORT")
+	db := dbSetup(dbHost, dbPort, dbUsername, dbName, dbPassword)
 	defer db.Close()
 	// Init JWT Key
 	JWTKey := config.GetString("security.secret_key")
