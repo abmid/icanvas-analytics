@@ -20,13 +20,13 @@ RUN cd web/app && npm run build
 
 # Install Dependency
 RUN go get -d -v ./...
-RUN go install -v ./...
+# RUN go install -v ./...
 
 # Build Golang
 RUN cd cmd/app && go build -o main .
 
 # Expose port
-EXPOSE 8181
+EXPOSE 8000
 
 WORKDIR /go/src/app/cmd/app
 
