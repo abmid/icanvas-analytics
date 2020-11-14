@@ -15,6 +15,7 @@
     "chart.js": "^2.9.3",
     "core-js": "^3.6.5",
     "jquery": "^3.5.1",
+    "js-yaml": "^3.14.0",
     "vue": "^2.6.11",
     "vue-chartjs": "^3.5.0",
     "vue-ctk-date-time-picker": "^2.5.0",

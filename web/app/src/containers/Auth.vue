@@ -41,6 +41,5 @@ export default {
 }
 .login-logo{
   color: #fff !important;
-  font-weight: bold;
 }
 </style>

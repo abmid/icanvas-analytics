@@ -89,8 +89,9 @@ export default {
       this.$store.dispatch("auth/logout").then(res => {
         if (res.status == 200) {
           location.reload()
+        }else{
+          this.$$_TOAST_SHOW("danger", "Failed Logout", res.data.message)
         }
-        this.$$_TOAST_SHOW("danger", "Failed Logout", res.data.message)
       }).catch(err => {
         console.log(err)
       })

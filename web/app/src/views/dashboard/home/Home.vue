@@ -28,6 +28,12 @@ export default {
     ContentHeader,
     ContentMain,
     AppCard
+  },
+  created(){
+    if (this.$route.query.from == "login") {
+      this.$router.push({name: "dashboard.home"})
+      location.reload()
+    }
   }
 }
 </script>

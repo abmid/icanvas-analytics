@@ -71,16 +71,17 @@ func GetRootPath() string {
 
 func readConfig(rootPath string) *viper.Viper {
 	v := viper.New()
-	getEnv := os.Getenv("APP_ENV")
-	if getEnv == "production" {
-		v.SetConfigName("prod")
-	} else {
-		v.SetConfigName("dev") // name of config file (without extension)
-	}
-	v.SetConfigType("yaml")                // REQUIRED if the config file does not have the extension in the name
-	v.AddConfigPath(rootPath + "/configs") // path to look for the config file in
-	err := v.ReadInConfig()                // Find and read the config file
-	if err != nil {                        // Handle errors reading the config file
+	// getEnv := os.Getenv("APP_ENV")
+	// if getEnv == "production" {
+	// 	v.SetConfigName("prod")
+	// } else {
+	// 	v.SetConfigName("dev") // name of config file (without extension)
+	// }
+	v.AddConfigPath(rootPath) // path to look for the config file in
+	v.SetConfigType("env")
+	v.SetConfigName(".env")
+	err := v.ReadInConfig() // Find and read the config file
+	if err != nil {         // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 	return v
@@ -92,10 +93,10 @@ func main() {
 	// Init Config
 	config := readConfig(rootPath)
 	// InitDB
-	dbHost := config.GetString("database.host")
-	dbUsername := config.GetString("database.username")
-	dbName := config.GetString("database.name")
-	dbPassword := config.GetString("database.password")
+	dbHost := config.GetString("PG_HOST")
+	dbUsername := config.GetString("PG_USER")
+	dbName := config.GetString("PG_DBNAME")
+	dbPassword := config.GetString("PG_PASSWORD")
 	db := dbSetup(dbHost, dbUsername, dbName, dbPassword)
 	defer db.Close()
 	// Init JWT Key
@@ -159,5 +160,5 @@ func main() {
 	analytics_job_handler.NewHandler("/analytics-job", r1, JWTKey, analyticsJobUC, wsUC)
 
 	// Start Server
-	e.Start(config.GetString("domain.port"))
+	e.Start(":" + config.GetString("APP_PORT"))
 }
