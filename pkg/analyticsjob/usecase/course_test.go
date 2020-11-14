@@ -5,17 +5,17 @@ import (
 	"sync"
 	"testing"
 
+	canvas_assigment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/usecase/mock"
+	canvas_course_uc "github.com/abmid/icanvas-analytics/pkg/canvas/course/usecase/mock"
+	canvas_discussion_uc "github.com/abmid/icanvas-analytics/pkg/canvas/discussion/usecase/mock"
+	canvas_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/usecase/mock"
+	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 	report_assigment_uc "github.com/abmid/icanvas-analytics/pkg/report/assigment/usecase/mock"
 	report_course_uc "github.com/abmid/icanvas-analytics/pkg/report/course/usecase/mock"
 	report_discussion_uc "github.com/abmid/icanvas-analytics/pkg/report/discussion/usecase/mock"
 	report_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/report/enrollment/usecase/mock"
 	report "github.com/abmid/icanvas-analytics/pkg/report/entity"
 	report_result_uc "github.com/abmid/icanvas-analytics/pkg/report/result/usecase/mock"
-	canvas_assigment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/assigment/usecase/mock"
-	canvas_course_uc "github.com/abmid/icanvas-analytics/pkg/canvas/course/usecase/mock"
-	canvas_discussion_uc "github.com/abmid/icanvas-analytics/pkg/canvas/discussion/usecase/mock"
-	canvas_enrollment_uc "github.com/abmid/icanvas-analytics/pkg/canvas/enrollment/usecase/mock"
-	canvas "github.com/abmid/icanvas-analytics/pkg/canvas/entity"
 
 	"github.com/golang/mock/gomock"
 	"gotest.tools/assert"
@@ -94,16 +94,22 @@ func TestListReportCourse(t *testing.T) {
 	// TODO Mock Report Result
 	reportResultUC := report_result_uc.NewMockReportResultUseCase(ctrl)
 	AUC := NewAnalyticJobUseCase(canvasCourseUC, canvasAssigmentUC, canvasEnrollmentUC, canvasDiscussionUC, reportAssigmentUC, reportCourseUC, reportDiscussionUC, reportEnrollmentUC, reportResultUC)
+
 	ch := make(chan report.ReportCourse)
 	wg := new(sync.WaitGroup)
 	result := []report.ReportCourse{}
-	go func() {
+
+	go func(wg *sync.WaitGroup) {
 		for rCourse := range ch {
 			// t.Log(rCourse)
 			result = append(result, rCourse)
 			wg.Done()
 		}
-	}()
+	}(wg)
+
 	AUC.listReportCourse(filter, ch, wg)
+
+	wg.Wait()
+
 	assert.Equal(t, len(result), len(listReportCourse))
 }
