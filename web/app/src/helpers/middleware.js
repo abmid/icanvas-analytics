@@ -13,7 +13,7 @@ export function middleware(store, router) {
         const metaTitle = to.meta.title
         document.title = appName + " - " + metaTitle
 
-        if(requiresAuth && store.state.setting.canvasConfig == null && to.name != "dashboard.setting"){
+        if(requiresAuth && store.state.setting.canvasConfig == null && to.name != "dashboard.setting" && currentUser){
             store.dispatch("setting/isExistsCanvasConfig")
             .then(res => {
                 if(res.status == 200){
