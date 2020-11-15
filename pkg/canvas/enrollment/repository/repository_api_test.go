@@ -69,27 +69,21 @@ func TestFixErrorUnmarshalStringJSON(t *testing.T) {
 }
 
 func TestSafeGetUint(t *testing.T) {
-	var TestExceptation uint32
-	TestExceptation = 10
-	assert.Equal(t, safeGetUint(int32(10)), TestExceptation)
-	assert.Equal(t, safeGetUint(int64(10)), TestExceptation)
-	assert.Equal(t, safeGetUint(int16(10)), TestExceptation)
+	var TestExpectation uint32
+	TestExpectation = 10
+	assert.Equal(t, safeGetUint(int32(10)), TestExpectation)
+	assert.Equal(t, safeGetUint(int64(10)), TestExpectation)
+	assert.Equal(t, safeGetUint(int16(10)), TestExpectation)
 }
 
 func TestSafeGetFloat32(t *testing.T) {
-	var TestExceptation float32
-	TestExceptation = 33.3
-	assert.Equal(t, safeGetFloat32(float64(33.3)), TestExceptation)
-	assert.Equal(t, safeGetFloat32(float32(33.3)), TestExceptation)
+	var TestExpectation float32
+	TestExpectation = 33.3
+	assert.Equal(t, safeGetFloat32(float64(33.3)), TestExpectation)
+	assert.Equal(t, safeGetFloat32(float32(33.3)), TestExpectation)
 }
 func TestSafeGetTime(t *testing.T) {
 	value := "2019-09-23T12:50:28+07:00"
 	exceptation, _ := time.Parse(time.RFC3339, value)
-	tt := safeGetTime(value)
-	t.Log(tt)
-	assert.Equal(t, tt, exceptation)
-}
-
-type TestA struct {
-	A string `json:"aa"`
+	assert.Equal(t, safeGetTime(value).String(), exceptation.String())
 }
