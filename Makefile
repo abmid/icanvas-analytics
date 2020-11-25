@@ -16,7 +16,7 @@ docker:
 docker-stop:
 	docker-compose down
 
-unittest:
+test-short:
 	go test -short  ./...
 
 .PHONY: all test clean
